@@ -15,7 +15,7 @@ export default function AdminDashboard() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:3000/appointments/login', { 
+      const res = await axios.post('https://beavers-hospital.onrender.com/appointments/login', { 
         email: "admin@beavers.com", 
         password: password 
       });
@@ -35,7 +35,7 @@ export default function AdminDashboard() {
   const fetchAppointments = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:3000/appointments/all');
+      const res = await axios.get('https://beavers-hospital.onrender.com/appointments/all');
       setAppointments(res.data);
     } catch (err) {
       console.error(err);
@@ -52,7 +52,7 @@ export default function AdminDashboard() {
     if (!doctorEmail) return;
 
     try {
-      await axios.patch(`http://localhost:3000/appointments/${id}/assign`, { 
+      await axios.patch(`https://beavers-hospital.onrender.com/appointments/${id}/assign`, { 
         doctorName, 
         doctorEmail 
       });
@@ -70,7 +70,7 @@ export default function AdminDashboard() {
     if (currentStatus === "COMPLETED") return; 
 
     try {
-      await axios.patch(`http://localhost:3000/appointments/${id}/status`, { status: newStatus });
+      await axios.patch(`https://beavers-hospital.onrender.com/appointments/${id}/status`, { status: newStatus });
       fetchAppointments(); 
     } catch (err) {
       alert("Failed to update status");
@@ -81,7 +81,7 @@ export default function AdminDashboard() {
   const handleDelete = async (id: string) => {
     if(!confirm("Are you sure you want to delete this appointment?")) return;
     try {
-      await axios.delete(`http://localhost:3000/appointments/${id}`);
+      await axios.delete(`https://beavers-hospital.onrender.com/appointments/${id}`);
       fetchAppointments(); 
     } catch (err) {
       alert("Failed to delete");

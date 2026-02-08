@@ -32,7 +32,7 @@ export default function BookingPage() {
     async function loadData() {
       try {
         console.log("Fetching data from backend...");
-        const res = await axios.get('http://localhost:3000/appointments/form-data');
+        const res = await axios.get('https://beavers-hospital.onrender.com/appointments/form-data');
         setBranches(res.data.branches);
         setServices(res.data.services);
         setLoading(false);
@@ -65,7 +65,7 @@ export default function BookingPage() {
         start_time: combinedDateTime.toISOString() // Sends standardized time
       };
 
-      await axios.post('http://localhost:3000/appointments/book', payload);
+      await axios.post('https://beavers-hospital.onrender.com/appointments/book', payload);
       setSuccess(true);
       setSubmitting(false);
     } catch (err) {
