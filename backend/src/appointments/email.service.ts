@@ -7,54 +7,60 @@ export class EmailService {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: parseInt(process.env.EMAIL_PORT || '587'),
+      secure: process.env.EMAIL_SECURE === 'true',
       auth: {
-        user: 'beaversfamilycare@gmail.com', // Your Gmail
-        pass: 'bgnh kfkj thnk kiar',     // Your App Password
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
-      logger: true,
-      debug: true, 
+      connectionTimeout: 5000, 
+      greetingTimeout: 5000,
     });
   }
 
-  // FIXED: Now accepts 4 arguments (to, subject, html, text)
-  async sendEmail(to: string, subject: string, html: string, text: string) {
-    try {
-      console.log(`📤 Sending to: ${to}`);
-      
-      const info = await this.transporter.sendMail({
-        from: '"Beavers Hospital" <youngwheezy001@gmail.com>',
-        to: to,
-        subject: subject,
-        html: html,
-        text: text, // Plain text fallback
-      });
+  // Changed the name to match what your AppointmentsService is calling
+  async sendBookingNotifications(details: any) {
+    console.log(`📤 Attempting to send booking notifications for: ${details.email}...`);
 
-      console.log(`✅ Google Accepted: ${info.response}`);
+    const htmlContent = `
+      <h1>Appointment Confirmation</h1>
+      <p>Hello ${details.name},</p>
+      <p>Your appointment for <strong>${details.serviceName}</strong> has been received.</p>
+      <p><strong>Date:</strong> ${details.date}</p>
+      <p><strong>Branch:</strong> ${details.branchName}</p>
+    `;
+
+    try {
+      const info = await this.transporter.sendMail({
+        from: `"Beavers FamilyCare" <${process.env.EMAIL_USER}>`,
+        to: [details.email, process.env.EMAIL_USER], // Sends to both patient and admin
+        subject: 'New Appointment Booking - Beavers FamilyCare',
+        text: `New appointment for ${details.name} on ${details.date}`,
+        html: htmlContent,
+      });
+      console.log('✅ Emails sent successfully:', info.messageId);
+      return info;
     } catch (error) {
-      console.error("❌ Send Failed:", error);
+      // The "Safe-Fail" logic to prevent the infinite spinner
+      console.warn('⚠️ Email notification failed, but booking is safe:', error.message);
+      return { success: false, error: error.message };
     }
   }
 
-  async sendBookingNotifications(data: any) {
-    const { patient_name, patient_email, start_time, service_name, branch_name } = data;
-
-    // 1. Alert Manager
-    await this.sendEmail(
-      'youngwheezy001@gmail.com',
-      '🚨 New Booking Alert',
-      `<h1>New Booking</h1><p>Patient: ${patient_name}</p><p>Service: ${service_name}</p>`,
-      `New Booking:\nPatient: ${patient_name}\nService: ${service_name}`
-    );
-
-    // 2. Alert Patient
-    if (patient_email) {
-      await this.sendEmail(
-        patient_email,
-        'Appointment Confirmed',
-        `<h1>Confirmed</h1><p>Dear ${patient_name}, your appointment is confirmed.</p>`,
-        `Dear ${patient_name}, your appointment is confirmed.`
-      );
+  // Keeping the general sendEmail function just in case other parts of your app use it
+  async sendEmail(to: string, subject: string, html: string, text: string) {
+    try {
+      return await this.transporter.sendMail({
+        from: `"Beavers FamilyCare" <${process.env.EMAIL_USER}>`,
+        to,
+        subject,
+        text,
+        html,
+      });
+    } catch (error) {
+      console.warn('⚠️ General email failed:', error.message);
+      return { success: false };
     }
   }
 }
