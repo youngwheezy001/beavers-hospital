@@ -142,10 +142,10 @@ export class AppointmentsService {
       throw new Error("Database failed to save booking.");
     }
 
-    // --- STEP E: SEND EMAILS ---
+    // --- STEP E: SEND EMAILS (FIXED) ---
     try {
       // 1. Email the Patient
-      // (Mapping data correctly to match EmailService expectations)
+      // 🚨 FIX: We changed keys from 'patient_name' to 'name' so EmailService reads them correctly
       await this.emailService.sendBookingNotifications({
         name: data.patient_name,
         email: data.patient_email,
@@ -155,10 +155,11 @@ export class AppointmentsService {
         branchName: validBranch.name
       });
 
-      // 2. Email the Admin (Use YOUR verified email to bypass Resend block)
+      // 2. Email the Admin
+      // 🚨 FIX: Sending to YOUR email to bypass Resend free tier block
       console.log("📤 Sending Admin Alert...");
       await this.emailService.sendEmail(
-        "youngwheezy001@gmail.com", // <--- 🚨 Ensures Admin Email Works
+        "youngwheezy001@gmail.com", 
         `New Booking: ${data.patient_name}`,
         `<h1>New Booking Alert</h1>
          <p><strong>Patient:</strong> ${data.patient_name}</p>
@@ -214,7 +215,7 @@ export class AppointmentsService {
     });
   }
 
-  // 8. ASSIGN DOCTOR
+  // 8. ASSIGN DOCTOR (UPDATED FOR ANTI-SPAM)
   async assignDoctor(id: string, doctorName: string, doctorEmail: string) {
     console.log(`👨‍⚕️ Assigning Dr. ${doctorName} to appointment ${id}...`);
 
