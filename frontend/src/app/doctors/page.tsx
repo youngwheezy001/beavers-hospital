@@ -91,7 +91,7 @@ function DoctorsList() {
   const [activeChat, setActiveChat] = useState<any>(null);
 
   useEffect(() => {
-    fetch("http://localhost:3000/appointments/admin/staff")
+    fetch("https://beavers-hospital.onrender.com")
       .then(r => r.json())
       .then(data => setDoctors(data || []));
   }, []);

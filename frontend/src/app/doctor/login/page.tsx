@@ -15,7 +15,7 @@ export default function DoctorLogin() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:3000/appointments/auth/login", {
+      const res = await fetch("https://beavers-hospital.onrender.com", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

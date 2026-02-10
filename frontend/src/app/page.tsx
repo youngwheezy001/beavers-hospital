@@ -1,217 +1,262 @@
 "use client";
-import { useState, useEffect } from "react";
+import React from "react";
+import Link from "next/link";
+import { 
+  Activity, Calendar, Shield, Stethoscope, UserCog, ArrowRight, 
+  Phone, MapPin, Clock, Star, CheckCircle, Heart, User 
+} from "lucide-react";
 
-export default function Home() {
-  // 1. FULL DATA LIST (This ensures the Purple Section is always full)
-  const defaultOptions = {
-    branches: [
-      { id: "1", name: "Ngong Branch" },
-      { id: "2", name: "El Paso Branch" },
-      { id: "3", name: "Uthiru Branch" }
-    ],
-    // COMPLETE LIST OF SERVICES
-    services: [
-      { id: "1", name: "General Consultation" },
-      { id: "2", name: "Emergency & Casualty" },
-      { id: "3", name: "Cardiac Care" },
-      { id: "4", name: "Maternal & Child Health" },
-      { id: "5", name: "Dental Clinic" },
-      { id: "6", name: "Optical Services" },
-      { id: "7", name: "OBS/GYN Specialist" },
-      { id: "8", name: "ENT Specialist" },
-      { id: "9", name: "Physiotherapy" },
-      { id: "10", name: "Wellness Clinic" },
-      { id: "11", name: "Mental Health Clinic" },
-      { id: "12", name: "Nutrition & Dietetics" },
-      { id: "13", name: "Laboratory & Pathology" },
-      { id: "14", name: "Radiology & Imaging" },
-      { id: "15", name: "Comprehensive Care (CCC)" }
-    ]
-  };
-
-  const [options, setOptions] = useState<any>(defaultOptions); 
-  const [isBackendLive, setIsBackendLive] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    branch_id: "",
-    service_id: "",
-    date: "",
-    time: "",
-    patient_name: "",
-    patient_email: "",
-    patient_phone: "",
-  });
-  
-  const [status, setStatus] = useState<any>(null);
-
-  useEffect(() => {
-    fetch("http://localhost:3000/appointments/form-data")
-      .then((res) => {
-        if (!res.ok) throw new Error("Backend blocked or offline");
-        return res.json();
-      })
-      .then((data) => {
-        if (data.branches && data.branches.length > 0) {
-          setOptions({ branches: data.branches, services: data.services });
-          setIsBackendLive(true);
-        }
-      })
-      .catch((err) => {
-        console.error("Using Full Backup Data:", err);
-        setIsBackendLive(false);
-      });
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setStatus({ type: "loading", msg: "⏳ Processing Booking..." });
-    
-    const branch = options.branches.find((b: any) => String(b.id) === String(formData.branch_id));
-    const service = options.services.find((s: any) => String(s.id) === String(formData.service_id));
-    
-    const combinedDateTime = new Date(`${formData.date}T${formData.time}`).toISOString();
-
-    try {
-      const res = await fetch("http://localhost:3000/appointments/book", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, start_time: combinedDateTime }),
-      });
-      const data = await res.json();
-      
-      if (res.ok) {
-        setStatus({ 
-          type: "success", 
-          title: "✅ APPOINTMENT CONFIRMED",
-          details: `Patient: ${formData.patient_name}\nService: ${service?.name || "Service"}\nLocation: ${branch?.name || "Branch"}\nDate: ${formData.date} at ${formData.time}`,
-          emailNote: `Confirmation sent to: ${formData.patient_email}`
-        });
-      } else {
-        setStatus({ type: "error", msg: "❌ Server Error: " + (data.message || "Failed") });
-      }
-    } catch (err) { 
-      // FALLBACK SUCCESS
-      setStatus({ 
-        type: "success", 
-        title: "✅ OFFLINE BOOKING SIMULATED",
-        details: `(Backend Offline Mode)\nPatient: ${formData.patient_name}\nService: ${service?.name}\nLocation: ${branch?.name}`,
-        emailNote: "Check backend console to fix connection."
-      });
-    }
-  };
-
-  const inputStyle = "w-full p-3 bg-white border border-gray-300 rounded-lg text-gray-900 font-medium focus:border-green-600 focus:ring-1 focus:ring-green-600 outline-none transition-all shadow-sm placeholder-gray-400";
-  const labelStyle = "block text-sm font-bold text-gray-700 mb-1 uppercase tracking-wide";
-
+export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-gray-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-white font-sans text-gray-900 selection:bg-purple-100 selection:text-purple-900">
       
-      <header className="bg-white shadow-sm sticky top-0 z-50 border-b-4 border-green-500">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-md">+</div>
-            <div>
-              <h1 className="text-2xl font-bold text-purple-900 leading-none">BEAVERS <span className="text-green-600">FamilyCare</span></h1>
-              <p className="text-xs text-gray-500 font-semibold tracking-widest uppercase mt-1">Your Health, Our Priority</p>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="flex-grow flex items-center justify-center p-6 md:p-10">
-        <div className="max-w-6xl w-full bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row min-h-[650px] border border-gray-200">
+      {/* =======================
+          1. NAVBAR
+      ======================== */}
+      <nav className="fixed w-full z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
           
-          {/* LEFT PANEL: COMPLETE SERVICE LIST */}
-          <div className="md:w-5/12 bg-purple-900 text-white p-8 md:p-10 relative">
-             <div className="relative z-10">
-              <h2 className="text-3xl font-bold mb-6 border-b-2 border-green-500 pb-2 inline-block">Our Services</h2>
-              <ul className="space-y-2 text-purple-50 text-sm font-medium">
-                {options.services.map((s: any, i: number) => (
-                  <li key={i} className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-green-400 rounded-full flex-shrink-0"></span> {s.name}
-                  </li>
-                ))}
-              </ul>
+          {/* Logo - Matches Booking Page Branding */}
+          <div className="flex items-center gap-3">
+            <div className="bg-purple-900 p-2 rounded-xl text-white shadow-lg">
+              <Activity size={24} strokeWidth={3} />
+            </div>
+            <div>
+              <span className="text-2xl font-black tracking-tight text-purple-900 leading-none block">
+                BEAVERS <span className="text-green-600">FamilyCare</span>
+              </span>
             </div>
           </div>
 
-          <div className="md:w-7/12 p-8 md:p-10 bg-gray-50 flex flex-col justify-center">
-            
-            {!isBackendLive && (
-              <div className="mb-4 p-2 bg-yellow-100 text-yellow-800 text-xs font-bold text-center rounded border border-yellow-300">
-                ⚠️ BACKEND DISCONNECTED: Using Backup Data
-              </div>
-            )}
+          {/* Desktop Menu */}
+          <div className="hidden md:flex items-center gap-8 text-sm font-bold text-gray-500">
+            <Link href="#services" className="hover:text-purple-700 transition">Departments</Link>
+            <Link href="#doctors" className="hover:text-purple-700 transition">Specialists</Link>
+            <Link href="#about" className="hover:text-purple-700 transition">About Us</Link>
+          </div>
 
-            {status?.type === "success" ? (
-              <div className="bg-green-50 border-2 border-green-500 rounded-xl p-8 text-center shadow-lg">
-                <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-4">✓</div>
-                <h2 className="text-2xl font-black text-green-800 mb-2">{status.title}</h2>
-                <div className="text-left bg-white p-4 rounded-lg border border-green-200 my-4 text-gray-700 whitespace-pre-line font-mono text-sm">
-                  {status.details}
-                </div>
-                <p className="text-green-700 font-bold">{status.emailNote}</p>
-                <button onClick={() => window.location.reload()} className="mt-6 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Book Another</button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <label className={labelStyle}>Patient Name</label>
-                    <input type="text" required placeholder="e.g. John Doe" className={inputStyle} onChange={(e) => setFormData({...formData, patient_name: e.target.value})} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className={labelStyle}>Phone</label>
-                      <input type="tel" required placeholder="e.g. +254 700..." className={inputStyle} onChange={(e) => setFormData({...formData, patient_phone: e.target.value})} />
-                    </div>
-                    <div>
-                      <label className={labelStyle}>Email</label>
-                      <input type="email" required placeholder="e.g. mail@example.com" className={inputStyle} onChange={(e) => setFormData({...formData, patient_email: e.target.value})} />
-                    </div>
-                  </div>
-                </div>
-
-                <hr className="border-gray-200" />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelStyle}>Branch</label>
-                    <select required className={inputStyle} value={formData.branch_id} onChange={(e) => setFormData({...formData, branch_id: e.target.value})}>
-                      <option value="" disabled>-- Select Branch --</option>
-                      {options.branches.map((b: any) => (
-                        <option key={b.id} value={b.id}>{b.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className={labelStyle}>Service</label>
-                    <select required className={inputStyle} value={formData.service_id} onChange={(e) => setFormData({...formData, service_id: e.target.value})}>
-                      <option value="" disabled>-- Select Service --</option>
-                      {options.services.map((s: any) => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelStyle}>Date 📅</label>
-                    <input type="date" required className={inputStyle} onChange={(e) => setFormData({...formData, date: e.target.value})} />
-                  </div>
-                  <div>
-                    <label className={labelStyle}>Time ⏰</label>
-                    <input type="time" required className={inputStyle} onChange={(e) => setFormData({...formData, time: e.target.value})} />
-                  </div>
-                </div>
-
-                <button type="submit" className="w-full bg-purple-900 hover:bg-purple-800 text-white font-bold py-4 rounded-lg shadow-md transition-all mt-2">Confirm Booking</button>
-              </form>
-            )}
+          {/* Action Buttons */}
+          <div className="flex items-center gap-4">
+            <Link href="/doctor/login" className="hidden md:flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-purple-700 transition">
+              <UserCog size={16} /> Staff Login
+            </Link>
+            <Link href="/booking">
+              <button className="bg-purple-900 text-white px-6 py-3 rounded-full font-bold text-sm shadow-xl shadow-purple-900/20 hover:bg-purple-800 hover:shadow-2xl hover:-translate-y-0.5 transition-all flex items-center gap-2">
+                Book Now <ArrowRight size={16} />
+              </button>
+            </Link>
           </div>
         </div>
-      </div>
-    </main>
+      </nav>
+
+      {/* =======================
+          2. HERO SECTION
+      ======================== */}
+      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+        {/* Background Blob */}
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-purple-50 rounded-full blur-3xl -z-10 opacity-50 translate-x-1/3 -translate-y-1/4"></div>
+
+        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+          
+          {/* Left: Text Content */}
+          <div className="space-y-8 animate-in slide-in-from-left duration-700 fade-in">
+            <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full text-xs font-extrabold uppercase tracking-widest border border-green-100">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              Accepting New Patients
+            </div>
+            
+            <h1 className="text-5xl lg:text-7xl font-black leading-[1.1] tracking-tight text-gray-900">
+              Modern Healthcare <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-800 to-indigo-600">Simplified.</span>
+            </h1>
+            
+            <p className="text-xl text-gray-500 leading-relaxed max-w-lg">
+              Say goodbye to long queues. Book appointments instantly, access your records online, and get treated by Kenya's top specialists.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-2">
+              <Link href="/booking" className="flex items-center justify-center gap-3 bg-gray-900 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-black transition shadow-xl hover:shadow-2xl hover:-translate-y-1">
+                <Calendar size={20} />
+                Book Appointment
+              </Link>
+              <button className="flex items-center justify-center gap-3 bg-white text-red-600 border-2 border-red-50 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-red-50 hover:border-red-200 transition">
+                <Phone size={20} />
+                Emergency: 911
+              </button>
+            </div>
+            
+            {/* Trust Badges */}
+            <div className="pt-8 flex items-center gap-6 border-t border-gray-100">
+              <div className="flex -space-x-3">
+                {[1,2,3,4].map(i => (
+                  <img key={i} src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" className="w-10 h-10 rounded-full border-2 border-white" />
+                ))}
+              </div>
+              <div className="text-sm font-bold text-gray-600">
+                <div className="flex text-yellow-400 mb-0.5"><Star size={14} fill="currentColor"/><Star size={14} fill="currentColor"/><Star size={14} fill="currentColor"/><Star size={14} fill="currentColor"/><Star size={14} fill="currentColor"/></div>
+                Trusted by 10,000+ Families
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Immersive Image Composition */}
+          <div className="relative animate-in slide-in-from-right duration-700 fade-in delay-200 hidden lg:block">
+            {/* Main Image */}
+            <div className="relative z-10 rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white transform rotate-2 hover:rotate-0 transition duration-500">
+              <img 
+                src="https://images.unsplash.com/photo-1638202993631-4325c9a1a972?q=80&w=1000&auto=format&fit=crop" 
+                alt="Modern Hospital" 
+                className="w-full h-[600px] object-cover"
+              />
+              {/* Overlay Card */}
+              <div className="absolute bottom-8 left-8 bg-white/90 backdrop-blur-xl p-5 rounded-2xl shadow-lg flex items-center gap-4 max-w-xs border border-white/50">
+                <div className="bg-green-100 p-3 rounded-full text-green-600">
+                  <CheckCircle size={24} />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900">System Online</p>
+                  <p className="text-xs text-gray-500 font-medium">Wait time: &lt; 5 mins</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Decorative Elements */}
+            <div className="absolute -bottom-10 -left-10 w-full h-full border-2 border-purple-200 rounded-[3rem] -z-10"></div>
+          </div>
+        </div>
+      </section>
+
+      {/* =======================
+          3. STATS STRIP
+      ======================== */}
+      <section className="bg-purple-900 text-white py-16">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-purple-800/50">
+          {[
+            { label: "Expert Doctors", val: "50+" },
+            { label: "Medical Departments", val: "15+" },
+            { label: "Patients Served", val: "12k+" },
+            { label: "Years Experience", val: "25+" },
+          ].map((stat, i) => (
+            <div key={i} className="px-4">
+              <div className="text-4xl lg:text-5xl font-black mb-2 text-green-400">{stat.val}</div>
+              <div className="text-purple-200 text-sm font-bold uppercase tracking-widest">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* =======================
+          4. DEPARTMENTS (Visual Grid)
+      ======================== */}
+      <section id="services" className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-green-600 font-bold tracking-wide uppercase text-sm mb-3">Our Expertise</h2>
+            <h3 className="text-4xl font-black text-purple-900 mb-4">Specialized Care for You</h3>
+            <p className="text-gray-500 text-lg">We offer a wide range of specialized medical services using state-of-the-art technology.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Card 1: Dental */}
+            <div className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-100">
+              <div className="h-56 overflow-hidden relative">
+                <div className="absolute inset-0 bg-purple-900/10 group-hover:bg-purple-900/0 transition z-10"></div>
+                <img src="https://images.unsplash.com/photo-1588776814546-1ffcf4722e12?auto=format&fit=crop&q=80&w=800" alt="Dental" className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+              </div>
+              <div className="p-8">
+                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4">
+                  <Shield size={24} />
+                </div>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">Dental Care</h4>
+                <p className="text-gray-500 mb-6 line-clamp-2">Comprehensive dental services including cleaning, surgery, and cosmetic procedures.</p>
+                <Link href="/booking" className="text-blue-600 font-bold flex items-center gap-1 group-hover:gap-2 transition-all">Book Visit <ArrowRight size={16}/></Link>
+              </div>
+            </div>
+
+            {/* Card 2: Maternity */}
+            <div className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-100">
+              <div className="h-56 overflow-hidden relative">
+                <div className="absolute inset-0 bg-purple-900/10 group-hover:bg-purple-900/0 transition z-10"></div>
+                <img src="https://images.unsplash.com/photo-1555252333-9f8e92e65df9?auto=format&fit=crop&q=80&w=800" alt="Maternity" className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+              </div>
+              <div className="p-8">
+                <div className="w-12 h-12 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center mb-4">
+                  <Heart size={24} />
+                </div>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">Maternal Health</h4>
+                <p className="text-gray-500 mb-6 line-clamp-2">Expert care for mothers and babies, from prenatal checkups to safe delivery.</p>
+                <Link href="/booking" className="text-pink-600 font-bold flex items-center gap-1 group-hover:gap-2 transition-all">Book Visit <ArrowRight size={16}/></Link>
+              </div>
+            </div>
+
+            {/* Card 3: Cardiology */}
+            <div className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-100">
+              <div className="h-56 overflow-hidden relative">
+                 <div className="absolute inset-0 bg-purple-900/10 group-hover:bg-purple-900/0 transition z-10"></div>
+                <img src="https://images.unsplash.com/photo-1628348068343-c6a848d2b6dd?auto=format&fit=crop&q=80&w=800" alt="Cardiology" className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+              </div>
+              <div className="p-8">
+                <div className="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center mb-4">
+                  <Activity size={24} />
+                </div>
+                <h4 className="text-xl font-bold text-gray-900 mb-2">Cardiology</h4>
+                <p className="text-gray-500 mb-6 line-clamp-2">Advanced heart care diagnostics, monitoring, and treatment plans.</p>
+                <Link href="/booking" className="text-red-600 font-bold flex items-center gap-1 group-hover:gap-2 transition-all">Book Visit <ArrowRight size={16}/></Link>
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Link href="/booking">
+                <button className="bg-white border-2 border-gray-200 text-gray-700 px-8 py-3 rounded-full font-bold hover:border-purple-900 hover:text-purple-900 transition">View All 15+ Departments</button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* =======================
+          5. FOOTER
+      ======================== */}
+      <footer className="bg-gray-900 text-white pt-20 pb-10">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-gray-800 pb-12 mb-12">
+          
+          {/* Brand Col */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="bg-white/10 p-2 rounded-lg text-white">
+                <Activity size={20} />
+              </div>
+              <span className="text-xl font-bold">BEAVERS <span className="text-green-500">FamilyCare</span></span>
+            </div>
+            <p className="text-gray-400 text-sm leading-relaxed">
+              Providing world-class healthcare with a personal touch. Your health journey starts here.
+            </p>
+          </div>
+          
+          {/* Links Col */}
+          <div>
+            <h4 className="font-bold text-lg mb-6 text-white">Quick Links</h4>
+            <ul className="space-y-3 text-gray-400 text-sm">
+              <li><Link href="/booking" className="hover:text-green-400 transition">Book Appointment</Link></li>
+              <li><Link href="/doctor/login" className="hover:text-green-400 transition">Doctor Portal</Link></li>
+              <li><Link href="/admin" className="hover:text-green-400 transition">Admin Dashboard</Link></li>
+            </ul>
+          </div>
+
+          {/* Contact Col */}
+          <div>
+            <h4 className="font-bold text-lg mb-6 text-white">Contact</h4>
+            <ul className="space-y-3 text-gray-400 text-sm">
+              <li className="flex items-center gap-3"><Phone size={16} className="text-green-500"/> +254 700 000 000</li>
+              <li className="flex items-center gap-3"><MapPin size={16} className="text-green-500"/> Ngong Road, Nairobi</li>
+              <li className="flex items-center gap-3"><Clock size={16} className="text-green-500"/> Open 24/7</li>
+            </ul>
+          </div>
+        </div>
+        <div className="text-center text-gray-600 text-xs">
+          © 2026 Beavers Hospital Project. All rights reserved.
+        </div>
+      </footer>
+    </div>
   );
 }
