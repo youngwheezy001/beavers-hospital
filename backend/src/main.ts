@@ -10,7 +10,7 @@ async function bootstrap() {
 
   // ✅ CORS: Allow your Vercel frontend to talk to this backend
   app.enableCors({
-    origin: 'true', // Allows all domains (easiest for now)
+    origin: '*', // Allows all domains (easiest for now)
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
