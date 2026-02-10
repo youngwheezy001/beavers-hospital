@@ -156,7 +156,7 @@ export default function AdminDashboard() {
           <div className="flex flex-col items-end gap-2">
             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Filter by Branch</span>
             <div className="flex items-center gap-4 bg-white p-2 rounded-xl shadow-sm border border-gray-300">
-              {["All", "Ngong", "El Paso", "Nairobi"].map(f => (
+              {["All", "Ngong", "El Paso", "Uthiru"].map(f => (
                 <button 
                   key={f}
                   onClick={() => setFilter(f)}
