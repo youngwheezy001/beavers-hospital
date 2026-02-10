@@ -1,266 +1,224 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { EmailService } from './email.service';
+"use client";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { LayoutDashboard, LogOut, Calendar, Clock, Filter, CheckCircle, Trash2, Stethoscope, Check, User } from 'lucide-react';
 
-@Injectable()
-export class AppointmentsService {
-  constructor(
-    private prisma: PrismaService,
-    private emailService: EmailService
-  ) {}
+export default function AdminDashboard() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [password, setPassword] = useState("");
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [filter, setFilter] = useState("All"); 
 
-  // 1. GET FORM DATA
-  async getFormData() {
-    const services = [
-      { id: "1", name: "General Consultation" },
-      { id: "2", name: "Emergency & Casualty" },
-      { id: "3", name: "Cardiac Care" },
-      { id: "4", name: "Maternal & Child Health" },
-      { id: "5", name: "Dental Clinic" },
-      { id: "6", name: "Optical Services" },
-      { id: "7", name: "OBS/GYN Specialist" },
-      { id: "8", name: "ENT Specialist" },
-      { id: "9", name: "Physiotherapy" },
-      { id: "10", name: "Wellness Clinic" },
-      { id: "11", name: "Mental Health Clinic" },
-      { id: "12", name: "Nutrition & Dietetics" },
-      { id: "13", name: "Laboratory & Pathology" },
-      { id: "14", name: "Radiology & Imaging" },
-      { id: "15", name: "Comprehensive Care (CCC)" }
-    ];
+  // --- LOGIN ---
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post('https://beavers-hospital.onrender.com/appointments/login', { email: "admin@beavers.com", password: password });
+      if (res.data.success) { setIsLoggedIn(true); } 
+      else { alert("Incorrect Password!"); }
+    } catch (err) { alert("Login Failed. Backend might be sleeping."); }
+  };
 
-    // @ts-ignore
-    const branches = await this.prisma.branch.findMany();
-    return { branches, services };
+  // --- FETCH DATA ---
+  const fetchAppointments = async () => {
+    try {
+      const res = await axios.get('https://beavers-hospital.onrender.com/appointments/all');
+      setAppointments(res.data);
+    } catch (err) { console.error(err); }
+  };
+
+  // --- AUTO-REFRESH (Every 5 Seconds) ---
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchAppointments();
+      const interval = setInterval(() => { fetchAppointments(); }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [isLoggedIn]);
+
+  // --- ACTIONS ---
+  const handleAssignDoctor = async (id: string) => {
+    const doctorName = prompt("Enter Doctor's Name:");
+    if (!doctorName) return;
+    const doctorEmail = prompt(`Enter email for ${doctorName}:`);
+    if (!doctorEmail) return;
+    try {
+      await axios.patch(`https://beavers-hospital.onrender.com/appointments/${id}/assign`, { doctorName, doctorEmail });
+      alert(`✅ Assigned to ${doctorName}!`); fetchAppointments();
+    } catch (err) { alert("Failed."); }
+  };
+
+  const handleStatusChange = async (id: string, currentStatus: string) => {
+    let newStatus = currentStatus === "CONFIRMED" ? "COMPLETED" : "CONFIRMED";
+    if (currentStatus === "COMPLETED") return; 
+    try { await axios.patch(`https://beavers-hospital.onrender.com/appointments/${id}/status`, { status: newStatus }); fetchAppointments(); } catch (err) { alert("Failed"); }
+  };
+
+  const handleDelete = async (id: string) => {
+    if(!confirm("Delete?")) return;
+    try { await axios.delete(`https://beavers-hospital.onrender.com/appointments/${id}`); fetchAppointments(); } catch (err) { alert("Failed"); }
+  };
+
+  // --- FILTER ---
+  const uniqueBranches = ["All", ...Array.from(new Set(appointments.map(app => app.branch?.name).filter(Boolean)))];
+  const filteredApps = appointments.filter(app => {
+    if (filter === "All") return true;
+    return app.branch?.name === filter;
+  });
+
+  // ===============================================
+  // VIEW 1: PROFESSIONAL LOGIN
+  // ===============================================
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900">
+        <div className="bg-white p-12 rounded-3xl shadow-2xl w-full max-w-md text-center border-4 border-purple-100">
+          
+          {/* Logo */}
+          <div className="bg-purple-900 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl transform rotate-3 hover:rotate-0 transition duration-300">
+             <LayoutDashboard className="w-10 h-10 text-white" />
+          </div>
+
+          <h1 className="text-4xl font-black text-purple-900 mb-2 tracking-tight">Beavers Admin</h1>
+          <p className="text-gray-500 font-medium mb-10 text-lg">Secure Command Center</p>
+          
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="relative">
+              <input 
+                type="password" 
+                className="w-full p-4 border-2 border-gray-200 rounded-xl text-center text-2xl font-bold text-gray-900 focus:border-purple-600 focus:ring-4 focus:ring-purple-100 outline-none transition-all" 
+                placeholder="••••••••" 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+              />
+            </div>
+            <button type="submit" className="w-full bg-purple-900 text-white py-4 rounded-xl font-bold text-lg hover:bg-purple-800 hover:shadow-lg transition transform hover:-translate-y-1">
+              Access Dashboard
+            </button>
+          </form>
+        </div>
+      </div>
+    );
   }
 
-  // 2. CHECK AVAILABILITY
-  async checkAvailability(branchId: string, doctorId: string, date: string) {
-    const searchDate = new Date(date);
-    const nextDay = new Date(searchDate);
-    nextDay.setDate(searchDate.getDate() + 1);
-
-    // @ts-ignore
-    const bookings = await this.prisma.appointment.findMany({
-      where: {
-        branch_id: branchId,
-        start_time: { gte: searchDate, lt: nextDay },
-        status: { not: 'CANCELLED' },
-      },
-      select: { start_time: true },
-    });
-
-    return {
-      busy_slots: bookings.map(b => ({ start: b.start_time })),
-      message: bookings.length > 0 ? "Slots taken" : "Free"
-    };
-  }
-
-  // 3. CREATE BOOKING
-  async createBooking(data: any) {
-    console.log("📝 STARTING BOOKING PROCESS...");
-
-    // --- STEP A: VERIFY PATIENT ---
-    let patientId = data.patient_id;
-    if (!patientId && data.patient_name) {
-      let user = await this.prisma.user.findUnique({ where: { email: data.patient_email } });
+  // ===============================================
+  // VIEW 2: THE DASHBOARD
+  // ===============================================
+  return (
+    // ✨ New Background: Medical Gradient (Blue/Purple/White)
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 text-gray-900 font-sans">
       
-      if (!user) {
-         console.log("👤 Creating new user for patient...");
-         user = await this.prisma.user.create({
-           data: {
-             full_name: data.patient_name,
-             email: data.patient_email,
-             password: "guest_password_123",
-             role: "PATIENT", 
-             phone: data.patient_phone || "0000000000"
-           }
-         });
-      }
+      {/* Navbar */}
+      <nav className="bg-white/80 backdrop-blur-md border-b px-8 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+        <div className="flex items-center gap-3">
+           <div className="bg-purple-900 p-2 rounded-lg text-white shadow-md"><LayoutDashboard size={22}/></div>
+           <span className="font-bold text-2xl tracking-tight text-gray-800">Command Center</span>
+        </div>
 
-      // @ts-ignore
-      let profile = await this.prisma.patientProfile.findUnique({ where: { user_id: user.id } });
-      if (!profile) {
-        // @ts-ignore
-        profile = await this.prisma.patientProfile.create({ data: { user_id: user.id } });
-      }
-      patientId = profile.id;
-    }
+        <button 
+          onClick={() => setIsLoggedIn(false)} 
+          className="flex items-center gap-2 text-red-600 font-bold text-sm bg-red-50 px-5 py-2.5 rounded-full hover:bg-red-100 transition border border-red-100 shadow-sm"
+        >
+          <LogOut size={16} /> Logout
+        </button>
+      </nav>
 
-    // --- STEP B: VERIFY BRANCH ---
-    // @ts-ignore
-    let validBranch = await this.prisma.branch.findUnique({ where: { id: data.branch_id } });
-    if (!validBranch) {
-      console.log("⚠️ Branch ID invalid. Using fallback...");
-      // @ts-ignore
-      validBranch = await this.prisma.branch.findFirst();
-    }
-    if (!validBranch) throw new Error("No branches available.");
-    const finalBranchId = validBranch.id;
-
-    // --- STEP C: VERIFY SERVICE ---
-    const serviceNameMap = {
-      "1": "General Consultation", "2": "Emergency & Casualty", "3": "Cardiac Care",
-      "4": "Maternal & Child Health", "5": "Dental Clinic", "6": "Optical Services",
-      "7": "OBS/GYN Specialist", "8": "ENT Specialist", "9": "Physiotherapy",
-      "10": "Wellness Clinic", "11": "Mental Health Clinic", "12": "Nutrition & Dietetics",
-      "13": "Laboratory & Pathology", "14": "Radiology & Imaging", "15": "Comprehensive Care (CCC)"
-    };
-    
-    // @ts-ignore
-    const targetServiceName = serviceNameMap[data.service_id] || "General Service";
-    
-    // @ts-ignore
-    let serviceObj = await this.prisma.service.findFirst({ where: { name: targetServiceName } });
-
-    if (!serviceObj) {
-      console.log(`🛠️ Service missing. Creating FRESH service: ${targetServiceName}`);
-      // @ts-ignore
-      serviceObj = await this.prisma.service.create({
-        data: { name: targetServiceName }
-      });
-    }
-    const finalServiceId = serviceObj.id;
-
-    // --- STEP D: SAVE APPOINTMENT ---
-    let newAppointment;
-    try {
-      console.log(`💾 Saving appointment...`);
-      // @ts-ignore
-      newAppointment = await this.prisma.appointment.create({
-        data: {
-          start_time: new Date(data.start_time),
-          status: 'PENDING',
-          patient: { connect: { id: patientId } },
-          branch: { connect: { id: finalBranchId } },
-          service: { connect: { id: finalServiceId } }
-        }
-      });
-      console.log("✅ DB Save SUCCESS! ID:", newAppointment.id);
-    } catch (dbError) {
-      console.error("❌ DB ERROR:", dbError);
-      throw new Error("Database failed to save booking.");
-    }
-
-    // --- STEP E: SEND EMAILS (FIXED) ---
-    try {
-      // 1. Email the Patient
-      // 🚨 FIX: We changed keys from 'patient_name' to 'name' so EmailService reads them correctly
-      await this.emailService.sendBookingNotifications({
-        name: data.patient_name,
-        email: data.patient_email,
-        phone: data.patient_phone,
-        date: new Date(data.start_time).toLocaleString(),
-        serviceName: targetServiceName,
-        branchName: validBranch.name
-      });
-
-      // 2. Email the Admin
-      // 🚨 FIX: Sending to YOUR email to bypass Resend free tier block
-      console.log("📤 Sending Admin Alert...");
-      await this.emailService.sendEmail(
-        "youngwheezy001@gmail.com", 
-        `New Booking: ${data.patient_name}`,
-        `<h1>New Booking Alert</h1>
-         <p><strong>Patient:</strong> ${data.patient_name}</p>
-         <p><strong>Service:</strong> ${targetServiceName}</p>
-         <p><strong>Branch:</strong> ${validBranch.name}</p>
-         <p><strong>Date:</strong> ${new Date(data.start_time).toLocaleString()}</p>
-         <p>Please login to the dashboard to assign a doctor.</p>`,
-        `New Booking: ${data.patient_name} for ${targetServiceName}`
-      );
-
-    } catch (error) { 
-      console.error("⚠️ Email System Failed:", error); 
-    }
-
-    return newAppointment;
-  }
-
-  // 4. ADMIN LOGIN
-  async login(body: any) {
-    if (body.email === "admin@beavers.com" && body.password === "admin123") {
-      return { success: true, name: "System Administrator" };
-    }
-    return { success: false };
-  }
-
-  // 5. GET ALL APPOINTMENTS
-  async getAllAppointments() {
-    // @ts-ignore
-    return this.prisma.appointment.findMany({
-      orderBy: { start_time: 'desc' },
-      include: {
-        patient: { include: { user: true } },
-        branch: true,
-        service: true
-      }
-    });
-  }
-
-  // 6. UPDATE STATUS
-  async updateStatus(id: string, status: string) {
-    // @ts-ignore
-    return this.prisma.appointment.update({
-      where: { id },
-      data: { status }
-    });
-  }
-
-  // 7. DELETE APPOINTMENT
-  async deleteAppointment(id: string) {
-    // @ts-ignore
-    return this.prisma.appointment.delete({
-      where: { id }
-    });
-  }
-
-  // 8. ASSIGN DOCTOR (UPDATED FOR ANTI-SPAM)
-  async assignDoctor(id: string, doctorName: string, doctorEmail: string) {
-    console.log(`👨‍⚕️ Assigning Dr. ${doctorName} to appointment ${id}...`);
-
-    // 1. Update Database
-    // @ts-ignore
-    const updatedApp = await this.prisma.appointment.update({
-      where: { id },
-      data: { 
-        doctor_name: doctorName,
-        doctor_email: doctorEmail,
-        status: "CONFIRMED" 
-      },
-      include: { service: true, patient: { include: { user: true } }, branch: true }
-    });
-
-    // 2. Email the Doctor
-    try {
-      console.log(`📧 Sending alert to Dr. ${doctorName}...`);
-      
-      const appDate = new Date(updatedApp.start_time).toLocaleString();
-      const svcName = updatedApp.service?.name || "General Service";
-      const patName = updatedApp.patient.user.full_name;
-
-      await this.emailService.sendEmail(
-        doctorEmail, // 1. TO
-        `New Patient: ${patName}`, // 2. SUBJECT
+      <div className="p-8 max-w-7xl mx-auto">
         
-        // 3. HTML VERSION
-        `
-        <h1>👨‍⚕️ New Patient Assignment</h1>
-        <p>Hello Dr. ${doctorName},</p>
-        <p>You have been assigned: <strong>${patName}</strong></p>
-        <p><strong>Service:</strong> ${svcName}</p>
-        <p><strong>Time:</strong> ${appDate}</p>
-        <p><strong>Location:</strong> ${updatedApp.branch.name}</p>
-        <p>Please log in to the portal to view full medical history.</p>
-        `,
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
+          <div>
+            <h2 className="text-5xl font-black text-gray-900 mb-3 tracking-tight">Appointments</h2>
+            {/* The Requested Wording */}
+            <p className="text-gray-500 font-medium text-lg">
+              Welcome back, Admin. Real-time overview of patient bookings across all branches.
+            </p>
+          </div>
 
-        // 4. TEXT VERSION
-        `Hello Dr. ${doctorName},\n\nYou have been assigned a new patient: ${patName}.\nService: ${svcName}\nTime: ${appDate}\nLocation: ${updatedApp.branch.name}\n\nPlease log in to the portal.`
-      );
-      
-      console.log("✅ Doctor Alert Sent!");
-    } catch (e) { console.error("Failed to email doctor:", e); }
+          {/* Filter Buttons */}
+          <div className="flex gap-2 bg-white p-2 rounded-xl shadow-sm border border-gray-100">
+            {uniqueBranches.map(f => (
+              <button key={f} onClick={() => setFilter(f as string)} className={`px-5 py-2 rounded-lg font-bold transition-all ${filter === f ? 'bg-purple-900 text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}>{f as string}</button>
+            ))}
+          </div>
+        </div>
 
-    return updatedApp;
-  }
+        {/* The Table */}
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-purple-100/50">
+          <table className="w-full text-left">
+            <thead className="bg-gray-50/50 border-b border-gray-100">
+              <tr>
+                <th className="p-6 text-gray-400 font-extrabold uppercase text-xs tracking-wider">Patient Details</th>
+                <th className="p-6 text-gray-400 font-extrabold uppercase text-xs tracking-wider">Service</th>
+                <th className="p-6 text-gray-400 font-extrabold uppercase text-xs tracking-wider">Schedule</th>
+                <th className="p-6 text-gray-400 font-extrabold uppercase text-xs tracking-wider">Status</th>
+                <th className="p-6 text-center text-gray-400 font-extrabold uppercase text-xs tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filteredApps.length === 0 ? 
+                <tr><td colSpan={5} className="p-16 text-center text-gray-400 font-medium text-lg">No appointments found today.</td></tr> 
+              : filteredApps.map((app) => (
+                <tr key={app.id} className="hover:bg-purple-50/50 transition duration-150 group">
+                  
+                  {/* 1. Patient Column (Doctor Name BELOW Patient) */}
+                  <td className="p-6 align-top">
+                    <div className="flex items-start gap-4">
+                      <div className="bg-gradient-to-br from-gray-700 to-gray-900 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg shadow-lg">
+                        {app.patient?.user?.full_name?.charAt(0) || <User size={20}/>}
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-900 text-lg">{app.patient?.user?.full_name}</div>
+                        <div className="text-sm text-gray-500 font-medium mb-2">{app.patient?.user?.phone}</div>
+                        
+                        {/* 🚨 DOCTOR NAME BELOW PATIENT 🚨 */}
+                        {app.doctor_name ? (
+                          <div className="flex items-center gap-1.5 bg-purple-100 text-purple-700 px-3 py-1 rounded-lg text-xs font-bold w-fit shadow-sm">
+                            <Stethoscope size={12} /> Dr. {app.doctor_name}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-orange-400 font-bold bg-orange-50 px-2 py-1 rounded">Unassigned</span>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* 2. Service */}
+                  <td className="p-6 align-top">
+                    <span className="font-bold text-gray-700 block text-base">{app.service?.name}</span>
+                    <span className="text-xs text-gray-400 font-medium">{app.branch?.name} Branch</span>
+                  </td>
+
+                  {/* 3. Date */}
+                  <td className="p-6 align-top">
+                    <div className="flex items-center gap-2 text-gray-700 font-bold"><Calendar size={16} className="text-purple-400"/> {new Date(app.start_time).toLocaleDateString()}</div>
+                    <div className="flex items-center gap-2 text-gray-500 text-sm mt-1 font-medium"><Clock size={16} className="text-purple-300"/> {new Date(app.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                  </td>
+
+                  {/* 4. Status */}
+                  <td className="p-6 align-top">
+                    <span className={`px-4 py-1.5 rounded-full text-xs font-bold border ${
+                      app.status === 'COMPLETED' ? 'bg-green-100 text-green-700 border-green-200' : 
+                      app.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-700 border-blue-200' : 
+                      'bg-yellow-50 text-yellow-700 border-yellow-200'
+                    }`}>
+                      {app.status}
+                    </span>
+                  </td>
+
+                  {/* 5. Actions */}
+                  <td className="p-6 align-top flex justify-center gap-2">
+                    <button onClick={() => handleAssignDoctor(app.id)} className="p-3 bg-white border border-gray-200 text-purple-600 rounded-xl hover:bg-purple-50 hover:border-purple-200 transition shadow-sm group-hover:shadow-md" title="Assign Doctor"><Stethoscope size={18}/></button>
+                    <button onClick={() => handleStatusChange(app.id, app.status)} className="p-3 bg-white border border-gray-200 text-green-600 rounded-xl hover:bg-green-50 hover:border-green-200 transition shadow-sm group-hover:shadow-md" title="Complete"><Check size={18}/></button>
+                    <button onClick={() => handleDelete(app.id)} className="p-3 bg-white border border-gray-200 text-red-500 rounded-xl hover:bg-red-50 hover:border-red-200 transition shadow-sm group-hover:shadow-md" title="Delete"><Trash2 size={18}/></button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
 }

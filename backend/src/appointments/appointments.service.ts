@@ -144,8 +144,7 @@ export class AppointmentsService {
 
     // --- STEP E: SEND EMAILS (INTEGRATED FIX) ---
     try {
-      // We explicitly map 'patient_email' and 'patient_name' so the EmailService 
-      // can read them (prevents the "undefined" error in logs).
+      // 1. Email the Patient
       await this.emailService.sendBookingNotifications({
         name: data.patient_name,
         email: data.patient_email,
@@ -154,10 +153,11 @@ export class AppointmentsService {
         serviceName: targetServiceName,
         branchName: validBranch.name
       });
-      // 2. Email the Admin (NEW FIX 🚨)
+      
+      // 2. Email the Admin (Use YOUR verified email to bypass Resend block)
       console.log("📤 Sending Admin Alert...");
       await this.emailService.sendEmail(
-        "admin@beavers.com", // Replace with real admin email if needed
+        "youngwheezy001@gmail.com", // <--- 🚨 FIXED: Sends to you
         `New Booking: ${data.patient_name}`,
         `<h1>New Booking Alert</h1>
          <p><strong>Patient:</strong> ${data.patient_name}</p>
@@ -237,8 +237,8 @@ export class AppointmentsService {
       const patName = updatedApp.patient.user.full_name;
 
       await this.emailService.sendEmail(
-        doctorEmail, // 1. TO
-        `New Patient: ${patName}`, // 2. SUBJECT
+        "youngwheezy001@gmail.com", // <--- 🚨 FIXED: Sends to you to bypass block
+        `New Patient: ${patName}`, 
         
         // 3. HTML VERSION (Pretty)
         `
