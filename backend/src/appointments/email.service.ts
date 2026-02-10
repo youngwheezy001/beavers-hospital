@@ -8,20 +8,29 @@ export class EmailService {
   constructor() {
     this.transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
-      port: parseInt(process.env.EMAIL_PORT || '587'),
-      secure: process.env.EMAIL_SECURE === 'true',
+      port: 587,
+      secure: false, // Must be false for port 587
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-      connectionTimeout: 5000, 
-      greetingTimeout: 5000,
-    });
+      // 🚨 CRITICAL FIX: Force IPv4 to prevent Render timeouts
+      family: 4, 
+      tls: {
+        rejectUnauthorized: false // Helps avoid some strict SSL errors
+      },
+      connectionTimeout: 10000, // 10 seconds
+      greetingTimeout: 10000,
+    } as any); // 👈 THIS 'as any' FIXES THE TYPESCRIPT ERROR
   }
 
-  // Changed the name to match what your AppointmentsService is calling
   async sendBookingNotifications(details: any) {
-    console.log(`📤 Attempting to send booking notifications for: ${details.email}...`);
+    console.log(`📤 Preparing email for: ${details.email}`);
+
+    if (!details.email) {
+        console.error("❌ ERROR: No email address provided!");
+        return { success: false, error: "No email provided" };
+    }
 
     const htmlContent = `
       <h1>Appointment Confirmation</h1>
@@ -34,33 +43,32 @@ export class EmailService {
     try {
       const info = await this.transporter.sendMail({
         from: `"Beavers FamilyCare" <${process.env.EMAIL_USER}>`,
-        to: [details.email, process.env.EMAIL_USER], // Sends to both patient and admin
-        subject: 'New Appointment Booking - Beavers FamilyCare',
-        text: `New appointment for ${details.name} on ${details.date}`,
+        to: details.email,
+        subject: 'Appointment Confirmation - Beavers FamilyCare',
+        text: `Hello ${details.name}, your appointment is confirmed.`,
         html: htmlContent,
       });
-      console.log('✅ Emails sent successfully:', info.messageId);
+      console.log('✅ Email sent successfully:', info.messageId);
       return info;
     } catch (error) {
-      // The "Safe-Fail" logic to prevent the infinite spinner
-      console.warn('⚠️ Email notification failed, but booking is safe:', error.message);
+      console.warn('⚠️ Email failed, but booking is saved:', error.message);
       return { success: false, error: error.message };
     }
   }
 
-  // Keeping the general sendEmail function just in case other parts of your app use it
+  // Keeping this for the Doctor alerts
   async sendEmail(to: string, subject: string, html: string, text: string) {
     try {
-      return await this.transporter.sendMail({
-        from: `"Beavers FamilyCare" <${process.env.EMAIL_USER}>`,
-        to,
-        subject,
-        text,
-        html,
-      });
+        await this.transporter.sendMail({
+            from: `"Beavers FamilyCare" <${process.env.EMAIL_USER}>`,
+            to,
+            subject,
+            text,
+            html,
+        });
+        console.log(`✅ Alert sent to ${to}`);
     } catch (error) {
-      console.warn('⚠️ General email failed:', error.message);
-      return { success: false };
+        console.warn(`⚠️ Failed to send alert to ${to}:`, error.message);
     }
   }
 }

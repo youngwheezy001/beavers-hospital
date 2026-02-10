@@ -142,17 +142,21 @@ export class AppointmentsService {
       throw new Error("Database failed to save booking.");
     }
 
-    // --- STEP E: SEND EMAILS ---
+    // --- STEP E: SEND EMAILS (INTEGRATED FIX) ---
     try {
+      // We explicitly map 'patient_email' and 'patient_name' so the EmailService 
+      // can read them (prevents the "undefined" error in logs).
       await this.emailService.sendBookingNotifications({
-        patient_name: data.patient_name,
-        patient_email: data.patient_email,
-        patient_phone: data.patient_phone,
-        start_time: new Date(data.start_time).toLocaleString(),
-        service_name: targetServiceName,
-        branch_name: validBranch.name
+        name: data.patient_name,
+        email: data.patient_email,
+        phone: data.patient_phone,
+        date: new Date(data.start_time).toLocaleString(),
+        serviceName: targetServiceName,
+        branchName: validBranch.name
       });
-    } catch (error) { console.error("⚠️ Email System Failed:", error); }
+    } catch (error) { 
+      console.error("⚠️ Email System Failed:", error); 
+    }
 
     return newAppointment;
   }
