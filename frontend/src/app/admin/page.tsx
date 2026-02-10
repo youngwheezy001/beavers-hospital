@@ -1,66 +1,44 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { LayoutDashboard, LogOut, Calendar, Clock, RefreshCw, Trash2, Stethoscope, Check, User, AlertTriangle, Wifi } from 'lucide-react';
-
-// 🚨 CHECK THIS URL: Is this your CURRENT Render URL?
-const BACKEND_URL = "https://beavers-hospital.onrender.com"; 
+import { LayoutDashboard, LogOut, Calendar, Clock, Filter, CheckCircle, Trash2, Stethoscope, Check, User } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [password, setPassword] = useState("");
   const [appointments, setAppointments] = useState<any[]>([]);
-  const [filter, setFilter] = useState("All");
-  
-  // Debugging States
-  const [lastUpdated, setLastUpdated] = useState<string>(""); 
-  const [errorMsg, setErrorMsg] = useState<string>("");
-  const [networkStatus, setNetworkStatus] = useState<"Checking" | "OK" | "Error">("Checking");
+  const [loading, setLoading] = useState(false);
+  const [filter, setFilter] = useState("All"); 
 
   // --- LOGIN ---
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${BACKEND_URL}/appointments/login`, { email: "admin@beavers.com", password: password });
+      const res = await axios.post('https://beavers-hospital.onrender.com/appointments/login', { email: "admin@beavers.com", password: password });
       if (res.data.success) { setIsLoggedIn(true); } 
       else { alert("Incorrect Password!"); }
     } catch (err) { alert("Login Failed. Backend might be sleeping."); }
   };
 
-  // --- FETCH DATA (The Diagnostic Version) ---
+  // --- FETCH DATA ---
   const fetchAppointments = async () => {
-    setNetworkStatus("Checking");
-    setErrorMsg("");
-    
     try {
-      // timestamp forces a fresh request every time
-      const uniqueUrl = `${BACKEND_URL}/appointments/all?t=${new Date().getTime()}`;
-      console.log("Fetching from:", uniqueUrl);
-
-      const res = await axios.get(uniqueUrl);
+    // 1. We add '?t=' + new Date().getTime() to FORCE the browser to ignore its cache.
+      const uniqueUrl = `https://beavers-hospital.onrender.com/appointments/all?t=${new Date().getTime()}`;
       
-      console.log("Raw Data Received:", res.data); // Look at Console (F12) if empty
-
-      if (Array.isArray(res.data)) {
-        setAppointments(res.data);
-        setNetworkStatus("OK");
-        setLastUpdated(new Date().toLocaleTimeString());
-      } else {
-        throw new Error("Data format incorrect. Expected Array.");
-      }
-
-    } catch (err: any) { 
-      console.error("Sync failed:", err);
-      setNetworkStatus("Error");
-      setErrorMsg(err.message || "Unknown Network Error");
-    }
+      const res = await axios.get(uniqueUrl);
+      setAppointments(res.data);
+      
+      // 2. Update the "Last Synced" time for visual proof
+      setLastUpdated(new Date().toLocaleTimeString());
+    } catch (err) { console.error("Sync failed:", err); }
   };
 
-  // --- AUTO-REFRESH ---
+  // --- AUTO-REFRESH (Every 5 Seconds) ---
   useEffect(() => {
     if (isLoggedIn) {
-      fetchAppointments(); 
-      const interval = setInterval(fetchAppointments, 5000); 
+      fetchAppointments();
+      const interval = setInterval(() => { fetchAppointments(); }, 5000);
       return () => clearInterval(interval);
     }
   }, [isLoggedIn]);
@@ -72,7 +50,7 @@ export default function AdminDashboard() {
     const doctorEmail = prompt(`Enter email for ${doctorName}:`);
     if (!doctorEmail) return;
     try {
-      await axios.patch(`${BACKEND_URL}/appointments/${id}/assign`, { doctorName, doctorEmail });
+      await axios.patch(`https://beavers-hospital.onrender.com/appointments/${id}/assign`, { doctorName, doctorEmail });
       alert(`✅ Assigned to ${doctorName}!`); fetchAppointments();
     } catch (err) { alert("Failed."); }
   };
@@ -80,12 +58,12 @@ export default function AdminDashboard() {
   const handleStatusChange = async (id: string, currentStatus: string) => {
     let newStatus = currentStatus === "CONFIRMED" ? "COMPLETED" : "CONFIRMED";
     if (currentStatus === "COMPLETED") return; 
-    try { await axios.patch(`${BACKEND_URL}/appointments/${id}/status`, { status: newStatus }); fetchAppointments(); } catch (err) { alert("Failed"); }
+    try { await axios.patch(`https://beavers-hospital.onrender.com/appointments/${id}/status`, { status: newStatus }); fetchAppointments(); } catch (err) { alert("Failed"); }
   };
 
   const handleDelete = async (id: string) => {
     if(!confirm("Delete?")) return;
-    try { await axios.delete(`${BACKEND_URL}/appointments/${id}`); fetchAppointments(); } catch (err) { alert("Failed"); }
+    try { await axios.delete(`https://beavers-hospital.onrender.com/appointments/${id}`); fetchAppointments(); } catch (err) { alert("Failed"); }
   };
 
   // --- FILTER ---
@@ -102,19 +80,25 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900">
         <div className="bg-white p-12 rounded-3xl shadow-2xl w-full max-w-md text-center border-4 border-purple-100">
+          
+          {/* Logo */}
           <div className="bg-purple-900 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl transform rotate-3 hover:rotate-0 transition duration-300">
              <LayoutDashboard className="w-10 h-10 text-white" />
           </div>
+
           <h1 className="text-4xl font-black text-purple-900 mb-2 tracking-tight">Beavers Admin</h1>
           <p className="text-gray-500 font-medium mb-10 text-lg">Secure Command Center</p>
+          
           <form onSubmit={handleLogin} className="space-y-6">
-            <input 
-              type="password" 
-              className="w-full p-4 border-2 border-gray-200 rounded-xl text-center text-2xl font-bold text-gray-900 focus:border-purple-600 focus:ring-4 focus:ring-purple-100 outline-none transition-all" 
-              placeholder="••••••••" 
-              value={password} 
-              onChange={e => setPassword(e.target.value)} 
-            />
+            <div className="relative">
+              <input 
+                type="password" 
+                className="w-full p-4 border-2 border-gray-200 rounded-xl text-center text-2xl font-bold text-gray-900 focus:border-purple-600 focus:ring-4 focus:ring-purple-100 outline-none transition-all" 
+                placeholder="••••••••" 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+              />
+            </div>
             <button type="submit" className="w-full bg-purple-900 text-white py-4 rounded-xl font-bold text-lg hover:bg-purple-800 hover:shadow-lg transition transform hover:-translate-y-1">
               Access Dashboard
             </button>
@@ -128,6 +112,7 @@ export default function AdminDashboard() {
   // VIEW 2: THE DASHBOARD
   // ===============================================
   return (
+    // ✨ New Background: Medical Gradient (Blue/Purple/White)
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 text-gray-900 font-sans">
       
       {/* Navbar */}
@@ -135,32 +120,29 @@ export default function AdminDashboard() {
         <div className="flex items-center gap-3">
            <div className="bg-purple-900 p-2 rounded-lg text-white shadow-md"><LayoutDashboard size={22}/></div>
            <span className="font-bold text-2xl tracking-tight text-gray-800">Command Center</span>
-           
-           {/* DIAGNOSTIC PANEL */}
-           <div className={`ml-4 px-3 py-1 rounded text-xs font-mono flex items-center gap-2 border ${networkStatus === 'OK' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-              {networkStatus === 'OK' ? <Wifi size={14}/> : <AlertTriangle size={14}/>}
-              {networkStatus === 'OK' ? `Live: ${lastUpdated}` : `Error: ${errorMsg}`}
-           </div>
         </div>
 
-        <div className="flex gap-2">
-            <button onClick={fetchAppointments} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition">
-                <RefreshCw size={14} /> Force Reload
-            </button>
-            <button onClick={() => setIsLoggedIn(false)} className="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition border border-red-100">
-                <LogOut size={16} /> Logout
-            </button>
-        </div>
+        <button 
+          onClick={() => setIsLoggedIn(false)} 
+          className="flex items-center gap-2 text-red-600 font-bold text-sm bg-red-50 px-5 py-2.5 rounded-full hover:bg-red-100 transition border border-red-100 shadow-sm"
+        >
+          <LogOut size={16} /> Logout
+        </button>
       </nav>
 
       <div className="p-8 max-w-7xl mx-auto">
+        
+        {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
           <div>
             <h2 className="text-5xl font-black text-gray-900 mb-3 tracking-tight">Appointments</h2>
+            {/* The Requested Wording */}
             <p className="text-gray-500 font-medium text-lg">
               Welcome back, Admin. Real-time overview of patient bookings across all branches.
             </p>
           </div>
+
+          {/* Filter Buttons */}
           <div className="flex gap-2 bg-white p-2 rounded-xl shadow-sm border border-gray-100">
             {uniqueBranches.map(f => (
               <button key={f} onClick={() => setFilter(f as string)} className={`px-5 py-2 rounded-lg font-bold transition-all ${filter === f ? 'bg-purple-900 text-white shadow-md' : 'text-gray-500 hover:bg-gray-100'}`}>{f as string}</button>
@@ -168,6 +150,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {/* The Table */}
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-purple-100/50">
           <table className="w-full text-left">
             <thead className="bg-gray-50/50 border-b border-gray-100">
@@ -181,11 +164,11 @@ export default function AdminDashboard() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredApps.length === 0 ? 
-                <tr><td colSpan={5} className="p-16 text-center text-gray-400 font-medium text-lg">
-                    {networkStatus === 'Error' ? "⚠️ Network connection failed." : "No appointments found today."}
-                </td></tr> 
+                <tr><td colSpan={5} className="p-16 text-center text-gray-400 font-medium text-lg">No appointments found today.</td></tr> 
               : filteredApps.map((app) => (
                 <tr key={app.id} className="hover:bg-purple-50/50 transition duration-150 group">
+                  
+                  {/* 1. Patient Column (Doctor Name BELOW Patient) */}
                   <td className="p-6 align-top">
                     <div className="flex items-start gap-4">
                       <div className="bg-gradient-to-br from-gray-700 to-gray-900 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg shadow-lg">
@@ -194,6 +177,8 @@ export default function AdminDashboard() {
                       <div>
                         <div className="font-bold text-gray-900 text-lg">{app.patient?.user?.full_name}</div>
                         <div className="text-sm text-gray-500 font-medium mb-2">{app.patient?.user?.phone}</div>
+                        
+                        {/* 🚨 DOCTOR NAME BELOW PATIENT 🚨 */}
                         {app.doctor_name ? (
                           <div className="flex items-center gap-1.5 bg-purple-100 text-purple-700 px-3 py-1 rounded-lg text-xs font-bold w-fit shadow-sm">
                             <Stethoscope size={12} /> Dr. {app.doctor_name}
@@ -204,14 +189,20 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                   </td>
+
+                  {/* 2. Service */}
                   <td className="p-6 align-top">
                     <span className="font-bold text-gray-700 block text-base">{app.service?.name}</span>
                     <span className="text-xs text-gray-400 font-medium">{app.branch?.name} Branch</span>
                   </td>
+
+                  {/* 3. Date */}
                   <td className="p-6 align-top">
                     <div className="flex items-center gap-2 text-gray-700 font-bold"><Calendar size={16} className="text-purple-400"/> {new Date(app.start_time).toLocaleDateString()}</div>
                     <div className="flex items-center gap-2 text-gray-500 text-sm mt-1 font-medium"><Clock size={16} className="text-purple-300"/> {new Date(app.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                   </td>
+
+                  {/* 4. Status */}
                   <td className="p-6 align-top">
                     <span className={`px-4 py-1.5 rounded-full text-xs font-bold border ${
                       app.status === 'COMPLETED' ? 'bg-green-100 text-green-700 border-green-200' : 
@@ -221,6 +212,8 @@ export default function AdminDashboard() {
                       {app.status}
                     </span>
                   </td>
+
+                  {/* 5. Actions */}
                   <td className="p-6 align-top flex justify-center gap-2">
                     <button onClick={() => handleAssignDoctor(app.id)} className="p-3 bg-white border border-gray-200 text-purple-600 rounded-xl hover:bg-purple-50 hover:border-purple-200 transition shadow-sm group-hover:shadow-md" title="Assign Doctor"><Stethoscope size={18}/></button>
                     <button onClick={() => handleStatusChange(app.id, app.status)} className="p-3 bg-white border border-gray-200 text-green-600 rounded-xl hover:bg-green-50 hover:border-green-200 transition shadow-sm group-hover:shadow-md" title="Complete"><Check size={18}/></button>
