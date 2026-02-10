@@ -1,74 +1,60 @@
 import { Injectable } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 @Injectable()
 export class EmailService {
-  private transporter;
+  private resend: Resend;
 
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true, // Must be true for port 465
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-      // 🚨 CRITICAL FIX: Force IPv4 to prevent Render timeouts
-      family: 4, 
-      tls: {
-        rejectUnauthorized: false // Helps avoid some strict SSL errors
-      },
-      connectionTimeout: 20000, // 10 seconds
-      greetingTimeout: 20000,
-    } as any); // 👈 THIS 'as any' FIXES THE TYPESCRIPT ERROR
+    this.resend = new Resend(process.env.RESEND_API_KEY);
   }
 
   async sendBookingNotifications(details: any) {
-    console.log(`📤 Preparing email for: ${details.email}`);
-
-    if (!details.email) {
-        console.error("❌ ERROR: No email address provided!");
-        return { success: false, error: "No email provided" };
-    }
-
-    const htmlContent = `
-      <h1>Appointment Confirmation</h1>
-      <p>Hello ${details.name},</p>
-      <p>Your appointment for <strong>${details.serviceName}</strong> has been received.</p>
-      <p><strong>Date:</strong> ${details.date}</p>
-      <p><strong>Branch:</strong> ${details.branchName}</p>
-    `;
+    console.log(`📤 Sending via Resend API to: ${details.email}`);
 
     try {
-      const info = await this.transporter.sendMail({
-        from: `"Beavers FamilyCare" <${process.env.EMAIL_USER}>`,
-        to: details.email,
+      const response = await this.resend.emails.send({
+        from: 'Beavers Hospital <onboarding@resend.dev>',
+        to: [details.email],
         subject: 'Appointment Confirmation - Beavers FamilyCare',
-        text: `Hello ${details.name}, your appointment is confirmed.`,
-        html: htmlContent,
+        html: `
+          <h1>Appointment Confirmation</h1>
+          <p>Hello ${details.name},</p>
+          <p>Your appointment for <strong>${details.serviceName}</strong> has been received.</p>
+          <p><strong>Date:</strong> ${details.date}</p>
+          <p><strong>Branch:</strong> ${details.branchName}</p>
+        `,
       });
-      console.log('✅ Email sent successfully:', info.messageId);
-      return info;
+
+      // 🚨 FIX 1: Check for errors first
+      if (response.error) {
+        console.error('⚠️ Resend API Error:', response.error);
+        return { success: false, error: response.error };
+      }
+
+      // 🚨 FIX 2: Access the ID correctly (inside .data)
+      console.log('✅ Email sent successfully ID:', response.data?.id);
+      return { success: true, id: response.data?.id };
+
     } catch (error) {
-      console.warn('⚠️ Email failed, but booking is saved:', error.message);
-      return { success: false, error: error.message };
+      console.error('⚠️ Resend System Failed:', error);
+      return { success: false, error };
     }
   }
 
-  // Keeping this for the Doctor alerts
+  // Keeping this for Doctor alerts
   async sendEmail(to: string, subject: string, html: string, text: string) {
     try {
-        await this.transporter.sendMail({
-            from: `"Beavers FamilyCare" <${process.env.EMAIL_USER}>`,
-            to,
-            subject,
-            text,
-            html,
-        });
-        console.log(`✅ Alert sent to ${to}`);
+      await this.resend.emails.send({
+        from: 'Beavers Hospital <onboarding@resend.dev>',
+        to: [to],
+        subject: subject,
+        html: html,
+        text: text
+      });
+      console.log(`✅ Alert sent to ${to} via API`);
     } catch (error) {
-        console.warn(`⚠️ Failed to send alert to ${to}:`, error.message);
+      console.error(`⚠️ Failed to send alert to ${to}:`, error);
     }
   }
 }
