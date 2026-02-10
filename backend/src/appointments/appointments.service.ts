@@ -154,6 +154,19 @@ export class AppointmentsService {
         serviceName: targetServiceName,
         branchName: validBranch.name
       });
+      // 2. Email the Admin (NEW FIX 🚨)
+      console.log("📤 Sending Admin Alert...");
+      await this.emailService.sendEmail(
+        "admin@beavers.com", // Replace with real admin email if needed
+        `New Booking: ${data.patient_name}`,
+        `<h1>New Booking Alert</h1>
+         <p><strong>Patient:</strong> ${data.patient_name}</p>
+         <p><strong>Service:</strong> ${targetServiceName}</p>
+         <p><strong>Branch:</strong> ${validBranch.name}</p>
+         <p><strong>Date:</strong> ${new Date(data.start_time).toLocaleString()}</p>
+         <p>Please login to the dashboard to assign a doctor.</p>`,
+        `New Booking: ${data.patient_name} for ${targetServiceName}`
+      );
     } catch (error) { 
       console.error("⚠️ Email System Failed:", error); 
     }
