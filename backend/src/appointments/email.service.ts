@@ -19,8 +19,8 @@ export class EmailService {
       tls: {
         rejectUnauthorized: false // Helps avoid some strict SSL errors
       },
-      connectionTimeout: 10000, // 10 seconds
-      greetingTimeout: 10000,
+      connectionTimeout: 20000, // 10 seconds
+      greetingTimeout: 20000,
     } as any); // 👈 THIS 'as any' FIXES THE TYPESCRIPT ERROR
   }
 
