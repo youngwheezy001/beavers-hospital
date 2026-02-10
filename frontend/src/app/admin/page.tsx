@@ -41,6 +41,21 @@ export default function AdminDashboard() {
       console.error(err);
     }
     setLoading(false);
+    // --- AUTO-REFRESH FIX 🚨 ---
+  useEffect(() => {
+    if (isLoggedIn) {
+      // Fetch immediately
+      fetchAppointments();
+
+      // Then fetch every 5 seconds
+      const interval = setInterval(() => {
+        fetchAppointments();
+      }, 5000);
+
+      // Cleanup when leaving the page
+      return () => clearInterval(interval);
+    }
+  }, [isLoggedIn]); // Only run when logged in
   };
 
   // --- 3. ACTIONS: ASSIGN DOCTOR ---
