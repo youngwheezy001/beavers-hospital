@@ -97,3 +97,14 @@ model Appointment {
   
   createdAt         DateTime       @default(now())
 }
+// 👨‍⚕️ STAFF MANAGEMENT (New Table)
+model Staff {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  password    String   // We will store this securely
+  role        String   // "DOCTOR" or "ADMIN"
+  department  String?
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+}
