@@ -54,6 +54,8 @@ export default function BookingPage() {
       const combinedDateTime = new Date(`${formData.date}T${formData.time}`);
       
       const payload = {
+        patient_id: null,
+        
         patient_name: formData.patient_name,
         patient_email: formData.patient_email,
         patient_phone: formData.patient_phone,
