@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { LayoutDashboard, LogOut, Calendar, Clock, RefreshCw, Trash2, Stethoscope, Check, User, AlertTriangle, Wifi, Database } from 'lucide-react';
+import { LayoutDashboard, LogOut, Calendar, Clock, RefreshCw, Trash2, Stethoscope, Check, User, AlertTriangle, Wifi } from 'lucide-react';
 
 // 🚨 CHECK THIS URL: Is this your CURRENT Render URL?
 const BACKEND_URL = "https://beavers-hospital.onrender.com"; 
@@ -12,11 +12,10 @@ export default function AdminDashboard() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [filter, setFilter] = useState("All");
   
-  // --- NEW DIAGNOSTIC STATES ---
-  const [lastUpdated, setLastUpdated] = useState<string>("Waiting..."); 
+  // Debugging States
+  const [lastUpdated, setLastUpdated] = useState<string>(""); 
   const [errorMsg, setErrorMsg] = useState<string>("");
-  const [networkStatus, setNetworkStatus] = useState<string>("Initializing");
-  const [recordCount, setRecordCount] = useState<number>(0); // Stores the "Found" count
+  const [networkStatus, setNetworkStatus] = useState<"Checking" | "OK" | "Error">("Checking");
 
   // --- LOGIN ---
   const handleLogin = async (e: React.FormEvent) => {
@@ -28,24 +27,23 @@ export default function AdminDashboard() {
     } catch (err) { alert("Login Failed. Backend might be sleeping."); }
   };
 
-  // --- FETCH DATA (Updated with "Found" Count) ---
+  // --- FETCH DATA (The Diagnostic Version) ---
   const fetchAppointments = async () => {
-    // 1. Set status to fetching so you see the update happening
-    setNetworkStatus("Fetching...");
+    setNetworkStatus("Checking");
     setErrorMsg("");
     
     try {
-      // timestamp forces a fresh request every time (No Caching)
+      // timestamp forces a fresh request every time
       const uniqueUrl = `${BACKEND_URL}/appointments/all?t=${new Date().getTime()}`;
-      
+      console.log("Fetching from:", uniqueUrl);
+
       const res = await axios.get(uniqueUrl);
       
+      console.log("Raw Data Received:", res.data); // Look at Console (F12) if empty
+
       if (Array.isArray(res.data)) {
         setAppointments(res.data);
-        // 2. Update the "Found" count
-        setRecordCount(res.data.length); 
-        // 3. Set status to Online
-        setNetworkStatus("Online");
+        setNetworkStatus("OK");
         setLastUpdated(new Date().toLocaleTimeString());
       } else {
         throw new Error("Data format incorrect. Expected Array.");
@@ -138,19 +136,10 @@ export default function AdminDashboard() {
            <div className="bg-purple-900 p-2 rounded-lg text-white shadow-md"><LayoutDashboard size={22}/></div>
            <span className="font-bold text-2xl tracking-tight text-gray-800">Command Center</span>
            
-           {/* 🔥 NEW DIAGNOSTIC PANEL (Top of Dashboard) */}
-           <div className="ml-4 flex items-center gap-2">
-              {/* 1. Status Pill */}
-              <div className={`px-3 py-1 rounded-full text-xs font-mono flex items-center gap-2 border ${networkStatus === 'Online' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                  {networkStatus === 'Online' ? <Wifi size={14}/> : <AlertTriangle size={14}/>}
-                  {networkStatus === 'Online' ? `Live: ${lastUpdated}` : `Error: ${errorMsg}`}
-              </div>
-
-              {/* 2. Found / Count Pill */}
-              <div className="px-3 py-1 rounded-full text-xs font-mono flex items-center gap-2 border bg-blue-50 text-blue-700 border-blue-200">
-                  <Database size={14}/>
-                  <span>Found: {recordCount}</span>
-              </div>
+           {/* DIAGNOSTIC PANEL */}
+           <div className={`ml-4 px-3 py-1 rounded text-xs font-mono flex items-center gap-2 border ${networkStatus === 'OK' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+              {networkStatus === 'OK' ? <Wifi size={14}/> : <AlertTriangle size={14}/>}
+              {networkStatus === 'OK' ? `Live: ${lastUpdated}` : `Error: ${errorMsg}`}
            </div>
         </div>
 
