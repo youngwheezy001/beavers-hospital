@@ -142,10 +142,10 @@ export class AppointmentsService {
       throw new Error("Database failed to save booking.");
     }
 
-    // --- STEP E: SEND EMAILS (INTEGRATED FIX) ---
+    // --- STEP E: SEND EMAILS ---
     try {
-      // We explicitly map 'patient_email' and 'patient_name' so the EmailService 
-      // can read them (prevents the "undefined" error in logs).
+      // 1. Email the Patient
+      // (Mapping data correctly to match EmailService expectations)
       await this.emailService.sendBookingNotifications({
         name: data.patient_name,
         email: data.patient_email,
@@ -154,10 +154,11 @@ export class AppointmentsService {
         serviceName: targetServiceName,
         branchName: validBranch.name
       });
-      // 2. Email the Admin (NEW FIX 🚨)
+
+      // 2. Email the Admin (Use YOUR verified email to bypass Resend block)
       console.log("📤 Sending Admin Alert...");
       await this.emailService.sendEmail(
-        "admin@beavers.com", // Replace with real admin email if needed
+        "youngwheezy001@gmail.com", // <--- 🚨 Ensures Admin Email Works
         `New Booking: ${data.patient_name}`,
         `<h1>New Booking Alert</h1>
          <p><strong>Patient:</strong> ${data.patient_name}</p>
@@ -167,6 +168,7 @@ export class AppointmentsService {
          <p>Please login to the dashboard to assign a doctor.</p>`,
         `New Booking: ${data.patient_name} for ${targetServiceName}`
       );
+
     } catch (error) { 
       console.error("⚠️ Email System Failed:", error); 
     }
@@ -176,7 +178,7 @@ export class AppointmentsService {
 
   // 4. ADMIN LOGIN
   async login(body: any) {
-    if (body.email === "beaversfamilycare@gmail.com" && body.password === "admin123") {
+    if (body.email === "admin@beavers.com" && body.password === "admin123") {
       return { success: true, name: "System Administrator" };
     }
     return { success: false };
@@ -212,7 +214,7 @@ export class AppointmentsService {
     });
   }
 
-  // 8. ASSIGN DOCTOR (UPDATED FOR ANTI-SPAM)
+  // 8. ASSIGN DOCTOR
   async assignDoctor(id: string, doctorName: string, doctorEmail: string) {
     console.log(`👨‍⚕️ Assigning Dr. ${doctorName} to appointment ${id}...`);
 
@@ -240,7 +242,7 @@ export class AppointmentsService {
         doctorEmail, // 1. TO
         `New Patient: ${patName}`, // 2. SUBJECT
         
-        // 3. HTML VERSION (Pretty)
+        // 3. HTML VERSION
         `
         <h1>👨‍⚕️ New Patient Assignment</h1>
         <p>Hello Dr. ${doctorName},</p>
@@ -251,7 +253,7 @@ export class AppointmentsService {
         <p>Please log in to the portal to view full medical history.</p>
         `,
 
-        // 4. TEXT VERSION (Anti-Spam - REQUIRED NOW)
+        // 4. TEXT VERSION
         `Hello Dr. ${doctorName},\n\nYou have been assigned a new patient: ${patName}.\nService: ${svcName}\nTime: ${appDate}\nLocation: ${updatedApp.branch.name}\n\nPlease log in to the portal.`
       );
       
