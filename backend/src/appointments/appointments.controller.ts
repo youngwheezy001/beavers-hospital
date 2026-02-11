@@ -46,4 +46,15 @@ export class AppointmentsController {
   ) {
     return this.appointmentsService.assignDoctor(id, body.doctorName, body.doctorEmail);
   }
+  // 🏥 NEW: PATIENT ENDPOINTS
+
+  @Post('patient-login')
+  async patientLogin(@Body() body: { phone: string }) {
+    return this.appointmentsService.patientLogin(body.phone);
+  }
+
+  @Get('patient/:id/records')
+  async getRecords(@Param('id') id: string) {
+    return this.appointmentsService.getPatientRecords(id);
+  }
 }

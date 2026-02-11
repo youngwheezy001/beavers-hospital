@@ -260,4 +260,37 @@ export class AppointmentsService {
 
     return updatedApp;
   }
+  // 🏥 NEW: PATIENT PORTAL LOGIC
+
+  // 1. Patient Login (Simple: Verify Phone exists)
+  async patientLogin(phone: string) {
+    // Find user by phone
+    const user = await this.prisma.user.findFirst({
+      where: { phone: phone },
+      include: { patient: true }
+    });
+
+    if (!user || !user.patient) {
+      throw new Error("Patient record not found. Please book an appointment first.");
+    }
+
+    return { 
+      success: true, 
+      patientId: user.patient.id, 
+      name: user.full_name 
+    };
+  }
+
+  // 2. Get Patient History
+  async getPatientRecords(patientId: string) {
+    return this.prisma.appointment.findMany({
+      where: { patient_id: patientId },
+      include: {
+        doctor: true,  // Include Doctor details
+        service: true, // Include Service details
+        branch: true   // Include Branch details
+      },
+      orderBy: { start_time: 'desc' } // Newest first
+    });
+  }
 }
