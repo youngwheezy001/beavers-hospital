@@ -90,19 +90,24 @@ export default function Chatbot() {
           {/* MESSAGES AREA */}
           <div ref={scrollRef} className="flex-1 p-5 overflow-y-auto space-y-4 bg-white">
   {messages.map((m, i) => (
+    {/* MESSAGES AREA - MAXIMUM VISIBILITY MODE */}
+      {/* MESSAGES AREA - MAXIMUM VISIBILITY MODE */}
+<div ref={scrollRef} className="flex-1 p-5 overflow-y-auto space-y-4 bg-white">
+  {messages.map((m, i) => (
     <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
       <div 
-        className={`max-w-[85%] p-4 rounded-2xl text-[15px] leading-relaxed shadow-md border ${
+        className={`max-w-[85%] p-4 rounded-2xl text-[16px] leading-relaxed shadow-xl ${
           m.role === 'user' 
-          ? 'bg-[#2563eb] text-white border-blue-600 rounded-tr-none' // User: White text on Blue
-          : 'bg-[#f8fafc] text-[#0f172a] border-slate-200 rounded-tl-none font-bold' // Bavi: Deep Black/Navy text on Light Grey
+          ? 'bg-[#000000] text-white rounded-tr-none font-medium' // User: White on Black
+          : 'bg-[#ffffff] text-[#000000] border-2 border-[#000000] rounded-tl-none font-black' // Bavi: Deep Black on Pure White
         }`}
+        style={{ color: m.role === 'bot' ? '#000000' : '#ffffff' }} // Inline force-color
       >
-                  {m.text}
-                </div>
-              </div>
-            ))}
-          </div>
+        {m.text}
+      </div>
+    </div>
+  ))}
+</div>
 
           {/* INPUT AREA */}
           <form onSubmit={handleSend} className="p-4 bg-white border-t border-slate-100 flex gap-2">
