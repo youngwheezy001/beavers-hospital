@@ -88,14 +88,16 @@ export default function Chatbot() {
           </div>
 
           {/* MESSAGES AREA */}
-          <div ref={scrollRef} className="flex-1 p-5 overflow-y-auto space-y-4 bg-slate-50/50">
-            {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] p-4 rounded-2xl text-sm font-medium leading-relaxed shadow-sm ${
-                  m.role === 'user' 
-                  ? 'bg-[#2563eb] text-white rounded-tr-none' 
-                  : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
-                }`}>
+          <div ref={scrollRef} className="flex-1 p-5 overflow-y-auto space-y-4 bg-white">
+  {messages.map((m, i) => (
+    <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+      <div 
+        className={`max-w-[85%] p-4 rounded-2xl text-[15px] leading-relaxed shadow-md border ${
+          m.role === 'user' 
+          ? 'bg-[#2563eb] text-white border-blue-600 rounded-tr-none' // User: White text on Blue
+          : 'bg-[#f8fafc] text-[#0f172a] border-slate-200 rounded-tl-none font-bold' // Bavi: Deep Black/Navy text on Light Grey
+        }`}
+      >
                   {m.text}
                 </div>
               </div>
