@@ -89,35 +89,32 @@ export default function Chatbot() {
 
           {/* MESSAGES AREA */}
           <div ref={scrollRef} className="flex-1 p-5 overflow-y-auto space-y-4 bg-white">
-  {messages.map((m, i) => (
-    {/* MESSAGES AREA - MAXIMUM VISIBILITY MODE */}
-      {/* MESSAGES AREA - MAXIMUM VISIBILITY MODE */}
-<div ref={scrollRef} className="flex-1 p-5 overflow-y-auto space-y-4 bg-white">
-  {messages.map((m, i) => (
-    <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-      <div 
-        className={`max-w-[85%] p-4 rounded-2xl text-[16px] leading-relaxed shadow-xl ${
-          m.role === 'user' 
-          ? 'bg-[#000000] text-white rounded-tr-none font-medium' // User: White on Black
-          : 'bg-[#ffffff] text-[#000000] border-2 border-[#000000] rounded-tl-none font-black' // Bavi: Deep Black on Pure White
-        }`}
-        style={{ color: m.role === 'bot' ? '#000000' : '#ffffff' }} // Inline force-color
-      >
-        {m.text}
-      </div>
-    </div>
-  ))}
-</div>
+            {messages.map((m, i) => (
+              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div 
+                  className={`max-w-[85%] p-4 rounded-2xl text-[16px] leading-relaxed shadow-md border ${
+                    m.role === 'user' 
+                    ? 'bg-blue-600 text-white rounded-tr-none' 
+                    : 'bg-slate-100 text-black border-slate-200 rounded-tl-none font-bold'
+                  }`}
+                  style={{ color: m.role === 'bot' ? '#000000' : '#ffffff' }}
+                >
+                  {m.text}
+                </div>
+              </div>
+            ))}
+          </div>
 
           {/* INPUT AREA */}
-          <form onSubmit={handleSend} className="p-4 bg-white border-t border-slate-100 flex gap-2">
+          <form onSubmit={handleSend} className="p-4 bg-white border-t border-slate-200 flex gap-2">
             <input 
-              className="flex-1 text-sm outline-none bg-slate-100 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all font-medium" 
-              placeholder="Ask me about booking, hours, or insurance..."
+              className="flex-1 text-[16px] outline-none bg-slate-100 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all font-bold text-black placeholder:text-slate-500" 
+              placeholder="Type your message here..."
+              style={{ color: '#000000' }}
               value={input}
               onChange={(e) => setInput(e.target.value)}
             />
-            <button type="submit" className="bg-[#0f172a] text-white p-3 rounded-xl hover:bg-blue-600 transition-colors shadow-lg">
+            <button type="submit" className="bg-slate-900 text-white p-3 rounded-xl hover:bg-blue-600 transition-colors shadow-lg">
               <Send size={18} />
             </button>
           </form>
