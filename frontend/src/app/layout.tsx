@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Beavers Family Care",
-  description: "Healthcare Reimagined in Kajiado County",
+  description: "Healthcare Reimagined",
 };
 
 export default function RootLayout({
@@ -27,17 +27,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased relative`}>
-        {/* Main Content */}
-        <main>{children}</main>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased relative min-h-screen`}>
+        {/* The main website content */}
+        <div id="main-content">
+          {children}
+          <Footer />
+        </div>
         
-        {/* Global Components */}
-        <Footer />
-        
-        {/* Floating Components - Placed at the end to ensure they stay on top */}
-        <div className="relative z-[9999]">
-          <Chatbot />
-          <SocialDock />
+        {/* THE UTILITY LAYER: Forced to the top */}
+        <div id="utility-layer" className="fixed inset-0 pointer-events-none z-[99999]">
+          <div className="absolute inset-0 pointer-events-auto">
+            <Chatbot />
+            <SocialDock />
+          </div>
         </div>
       </body>
     </html>
