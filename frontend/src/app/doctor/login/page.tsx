@@ -1,15 +1,14 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios"; // Import Axios
-import { Activity, Lock, Stethoscope, ArrowRight, AlertCircle } from "lucide-react";
+import axios from "axios";
+import { Lock, Stethoscope, ArrowRight, AlertCircle, ShieldCheck } from "lucide-react";
 
-// The Backend Address
 const BACKEND_URL = "https://beavers-hospital.onrender.com";
 
 export default function DoctorLogin() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState(""); // Added Password State
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -17,28 +16,20 @@ export default function DoctorLogin() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(""); 
+    setError("");
     
     try {
-      const res = await axios.post(`${BACKEND_URL}/staff/login`, { 
-        email, 
-        password 
-      });
-
+      const res = await axios.post(`${BACKEND_URL}/staff/login`, { email, password });
       if (res.data.success) {
         localStorage.setItem("doctor_email", email);
         localStorage.setItem("doctor_name", res.data.staff.name);
-        
-        // 🚨 THIS WAS THE PROBLEM. CHANGE IT TO THIS:
-        router.push("/doctor/portal"); 
+        router.push("/doctor/portal");
       }
-
     } catch (err: any) {
-      console.error("Login Error:", err);
       if (err.response) {
-         setError(err.response.data.message || "Login failed.");
+         setError(err.response.data.message || "Invalid credentials.");
       } else {
-         setError("Server is sleeping. Please try again.");
+         setError("Connection error. Is the server awake?");
       }
     } finally {
       setLoading(false);
@@ -46,52 +37,52 @@ export default function DoctorLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md p-10 rounded-3xl shadow-2xl border border-white/50 relative overflow-hidden">
-        
-        <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-100 rounded-full blur-2xl"></div>
+    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4 relative overflow-hidden">
+      
+      {/* 🌌 DYNAMIC BACKGROUND SHAPES */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px]"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[120px]"></div>
 
-        <div className="relative z-10 text-center">
-          <div className="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">
-            <Stethoscope className="text-white" size={32} />
-          </div>
+      <div className="w-full max-w-md relative z-10">
+        {/* LOGO AREA */}
+        <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-2xl shadow-blue-500/20 mb-4 transform rotate-3">
+                <Stethoscope className="text-white w-10 h-10" />
+            </div>
+            <h1 className="text-4xl font-black text-white tracking-tight">Staff Login</h1>
+            <p className="text-blue-200/60 font-medium mt-2">Beavers Family Clinic Portal</p>
+        </div>
+
+        {/* 💳 FROSTED GLASS LOGIN CARD */}
+        <div className="bg-white/10 backdrop-blur-xl border border-white/10 p-10 rounded-[2.5rem] shadow-2xl">
           
-          <h1 className="text-3xl font-black text-gray-900 mb-2">Doctor Access</h1>
-          <p className="text-gray-500 mb-8">Beavers Family Clinic Portal</p>
-
-          {/* Error Message Box */}
           {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6 text-sm font-bold flex items-center gap-2 animate-pulse">
-              <AlertCircle size={16}/> {error}
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-2xl mb-6 text-sm font-bold flex items-center gap-3">
+              <AlertCircle size={18}/> {error}
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-6 text-left">
+          <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="text-xs font-bold text-gray-700 uppercase tracking-wide ml-1">Email Address</label>
-              <div className="relative mt-2">
-                <input
-                  type="email"
-                  required
-                  placeholder="dr.mwaura@beavers.com"
-                  className="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition font-medium text-gray-900"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
+              <label className="text-xs font-bold text-blue-200/50 uppercase tracking-widest ml-1">Work Email</label>
+              <input
+                type="email"
+                required
+                placeholder="dr.mwaura@beavers.com"
+                className="w-full mt-2 px-5 py-4 bg-white/5 border border-white/10 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white/10 outline-none transition font-medium text-white placeholder:text-white/20"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-700 uppercase tracking-wide ml-1">Password</label>
+              <label className="text-xs font-bold text-blue-200/50 uppercase tracking-widest ml-1">Password</label>
               <div className="relative mt-2">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
                 <input
                   type="password"
                   required
                   placeholder="••••••••"
-                  className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition font-medium text-gray-900"
+                  className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white/10 outline-none transition font-medium text-white placeholder:text-white/20"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -101,16 +92,23 @@ export default function DoctorLogin() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg shadow-xl hover:bg-blue-700 transition transform hover:-translate-y-1 flex items-center justify-center gap-2"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-blue-600/20 transition-all transform hover:-translate-y-1 active:scale-[0.98] flex items-center justify-center gap-2"
             >
-              {loading ? "Verifying..." : <>Login Securely <ArrowRight size={20}/></>}
+              {loading ? "Authenticating..." : <>Access Portal <ArrowRight size={20}/></>}
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-center gap-2 text-xs text-gray-400">
-             Authorized Personnel Only. Access is monitored.
+          <div className="mt-8 pt-8 border-t border-white/5 text-center">
+             <div className="flex items-center justify-center gap-2 text-blue-200/30 text-xs font-bold uppercase tracking-widest">
+                <ShieldCheck size={14} />
+                <span>End-to-End Encrypted</span>
+             </div>
           </div>
         </div>
+        
+        <p className="text-center mt-8 text-white/20 text-xs font-medium">
+            &copy; 2026 Beavers Family Clinic Management System
+        </p>
       </div>
     </div>
   );
