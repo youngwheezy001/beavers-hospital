@@ -1,4 +1,3 @@
-// This is your Database Blueprint
 generator client {
   provider = "prisma-client-js"
 }
@@ -18,8 +17,13 @@ model User {
   role      Role     @default(PATIENT)
   createdAt DateTime @default(now())
 
-  patientProfile PatientProfile?
-  staffProfile   StaffProfile?
+  // --- FIX START ---
+  // We renamed this from 'patientProfile' to 'patient' 
+  // so your backend code (user.patient) can find it.
+  patient   PatientProfile? 
+  // --- FIX END ---
+  
+  staffProfile StaffProfile?
 }
 
 enum Role {
@@ -57,7 +61,7 @@ model Service {
   id           String          @id @default(uuid())
   name         String          @unique // "Dental", "Optical"
   branches     BranchService[]
-  appointments Appointment[]   // <--- FIXED: Lowercase 'appointments'
+  appointments Appointment[]   
 }
 
 // Link Table: Which Branch has which Service?
@@ -72,12 +76,12 @@ model BranchService {
 
 // 4. THE BOOKING
 model Appointment {
-  id                String         @id @default(uuid())
+  id                String   @id @default(uuid())
   start_time        DateTime
-  status            String         @default("PENDING")
-  // ADD THESE TWO LINES:
-  doctor_name  String?  // Optional: The assigned doctor's name
-  doctor_email String?  // Optional: Where to send the alert
+  status            String   @default("PENDING")
+
+  doctor_name       String?  
+  doctor_email      String?  
 
   patient_id        String
   patient           PatientProfile @relation(fields: [patient_id], references: [id])
@@ -90,20 +94,20 @@ model Appointment {
 
   service_booked_id String?
   service_booked    BranchService? @relation(fields: [service_booked_id], references: [id])
-  
-  // Direct link for simpler queries
+   
   service_id        String?
   service           Service?       @relation(fields: [service_id], references: [id]) 
-  
+   
   createdAt         DateTime       @default(now())
 }
+
 // 👨‍⚕️ STAFF MANAGEMENT (New Table)
 model Staff {
   id          String   @id @default(uuid())
   name        String
   email       String   @unique
-  password    String   // We will store this securely
-  role        String   // "DOCTOR" or "ADMIN"
+  password    String   
+  role        String   
   department  String?
   is_active   Boolean  @default(true)
   created_at  DateTime @default(now())
