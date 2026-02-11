@@ -17,30 +17,28 @@ export default function DoctorLogin() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(""); // Clear previous errors
+    setError(""); 
     
     try {
-      // 1. Send Credentials to Backend
       const res = await axios.post(`${BACKEND_URL}/staff/login`, { 
         email, 
         password 
       });
 
-      // 2. Success! Save the session
       if (res.data.success) {
         localStorage.setItem("doctor_email", email);
-        localStorage.setItem("doctor_name", res.data.staff.name); // Save name for welcome message
-        router.push("/doctor/portal");
+        localStorage.setItem("doctor_name", res.data.staff.name);
+        
+        // 🚨 THIS WAS THE PROBLEM. CHANGE IT TO THIS:
+        router.push("/doctor/portal"); 
       }
 
     } catch (err: any) {
-      // 3. Handle Errors (Wrong password, etc.)
       console.error("Login Error:", err);
       if (err.response) {
-         // This handles the "Cannot POST" or "Unauthorized" errors gracefully
-         setError(err.response.data.message || "Login failed. Check credentials.");
+         setError(err.response.data.message || "Login failed.");
       } else {
-         setError("Server is sleeping. Please try again in 10 seconds.");
+         setError("Server is sleeping. Please try again.");
       }
     } finally {
       setLoading(false);
