@@ -15,7 +15,7 @@ export class StaffService {
   async createStaff(data: { name: string; email: string; role: string; department: string }) {
     // Check if email exists
     const existing = await this.prisma.staff.findUnique({ where: { email: data.email } });
-    if (existing) throw new Error("Email already registered!");
+    if (existing) throw new ConflictException("Email already registered!");
 
     // Generate secure password
     const rawPassword = this.generatePassword(); 

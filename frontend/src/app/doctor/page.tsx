@@ -36,12 +36,12 @@ export default function DoctorPortal() {
   const fetchData = async (id: string) => {
     try {
       // Get Appointments
-      const resAppts = await fetch(`http://localhost:3000/appointments/doctor/${id}`);
+      const resAppts = await fetch(`https://beavers-hospital.onrender.com/doctor/${id}`);
       const dataAppts = await resAppts.json();
       setAppointments(dataAppts);
 
       // Get Status
-      const resStaff = await fetch("http://localhost:3000/appointments/admin/staff");
+      const resStaff = await fetch("https://beavers-hospital.onrender.com/appointments/admin/staff");
       const dataStaff = await resStaff.json();
       const myProfile = dataStaff.find((d: any) => d.id === id);
       if (myProfile) setIsOnline(myProfile.is_online);
@@ -57,7 +57,7 @@ export default function DoctorPortal() {
   const toggleStatus = async () => {
     const newStatus = !isOnline;
     setIsOnline(newStatus);
-    await fetch(`http://localhost:3000/appointments/doctor/${doctorId}/toggle`, {
+    await fetch(`https://beavers-hospital.onrender.com/appointments/doctor/${doctorId}/toggle`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ is_online: newStatus })
@@ -73,7 +73,7 @@ export default function DoctorPortal() {
   const handleConsultation = (id: string) => {
     const diagnosis = prompt("Enter Diagnosis:");
     if(diagnosis) {
-       fetch(`http://localhost:3000/appointments/${id}/consultation`, {
+       fetch(`https://beavers-hospital.onrender.com/appointments/${id}/consultation`, {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
          body: JSON.stringify({ diagnosis, prescription: "Standard Care", notes: "None" })
