@@ -57,6 +57,8 @@ export default function AboutPage() {
             <Link href="/" className="hover:text-purple-700 transition">Home</Link>
             <Link href="/services" className="hover:text-purple-700 transition">Departments</Link>
             <Link href="/about" className="text-purple-900">About Us</Link>
+            {/* INTEGRATED E-PHARMACY LINK */}
+            <Link href="/pharmacy" className="hover:text-purple-700 transition">E-Pharmacy</Link>
             <Link href="/contact" className="hover:text-purple-700 transition">Contact</Link>
           </div>
 

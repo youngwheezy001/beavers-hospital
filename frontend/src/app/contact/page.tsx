@@ -49,6 +49,8 @@ export default function ContactPage() {
             <Link href="/" className="hover:text-purple-700 transition">Home</Link>
             <Link href="/services" className="hover:text-purple-700 transition">Departments</Link>
             <Link href="/about" className="hover:text-purple-700 transition">About Us</Link>
+            {/* INTEGRATED E-PHARMACY LINK */}
+            <Link href="/pharmacy" className="hover:text-purple-700 transition">E-Pharmacy</Link>
             <Link href="/contact" className="text-purple-900">Contact</Link>
           </div>
 

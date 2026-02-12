@@ -4,8 +4,11 @@ import axios from 'axios';
 import { 
   LayoutDashboard, LogOut, Calendar, Clock, RefreshCw, Trash2, 
   Stethoscope, Check, User, AlertTriangle, Wifi, Database, 
-  Users, UserPlus, Lock, Shield 
+  Users, UserPlus, Lock, Shield, 
+  // NEW IMPORTS FOR PHARMACY
+  DollarSign, TrendingUp, Package 
 } from 'lucide-react';
+import { div } from 'framer-motion/client';
 
 // 🚨 CHECK THIS URL: Is this your CURRENT Render URL?
 const BACKEND_URL = "https://beavers-hospital.onrender.com"; 
@@ -17,10 +20,14 @@ export default function AdminDashboard() {
   const [filter, setFilter] = useState("All");
   
   // --- NEW: STAFF MANAGEMENT STATES ---
-  const [activeTab, setActiveTab] = useState<"APPOINTMENTS" | "STAFF">("APPOINTMENTS");
+  // UPDATED: Added "PHARMACY" to the allowed tabs
+  const [activeTab, setActiveTab] = useState<"APPOINTMENTS" | "STAFF" | "PHARMACY">("APPOINTMENTS");
   const [staffList, setStaffList] = useState<any[]>([]);
   const [newStaff, setNewStaff] = useState({ name: "", email: "", role: "DOCTOR", department: "" });
   const [generatedPass, setGeneratedPass] = useState("");
+
+  // --- NEW: PHARMACY STATE ---
+  const [pharmacyOrders, setPharmacyOrders] = useState<any[]>([]);
   
   // Debugging States
   const [lastUpdated, setLastUpdated] = useState<string>(""); 
@@ -63,6 +70,16 @@ export default function AdminDashboard() {
       if (activeTab === "STAFF") {
         const staffRes = await axios.get(`${BACKEND_URL}/staff/all`);
         setStaffList(staffRes.data);
+      }
+
+      // 3. NEW: Fetch Pharmacy Orders (Read from LocalStorage to show Real Profits)
+      if (activeTab === "PHARMACY") {
+        if (typeof window !== 'undefined') {
+            const storedData = localStorage.getItem('beavers_orders');
+            if (storedData) {
+                setPharmacyOrders(JSON.parse(storedData));
+            }
+        }
       }
 
     } catch (err: any) { 
@@ -110,6 +127,30 @@ export default function AdminDashboard() {
     try { await axios.delete(`${BACKEND_URL}/appointments/${id}`); fetchAppointments(); } catch (err) { alert("Failed"); }
   };
 
+  // --- NEW: PRINT & PHARMACY ACTIONS ---
+  const handlePrint = (order: any) => {
+    const printContent = document.getElementById(`invoice-${order.id}`);
+    if (printContent) {
+      const originalContent = document.body.innerHTML;
+      document.body.innerHTML = printContent.innerHTML;
+      window.print();
+      document.body.innerHTML = originalContent;
+      window.location.reload(); 
+    }
+  };
+
+  const toggleOrderStatus = (orderId: string) => {
+    const updatedOrders = pharmacyOrders.map(order => {
+      if (order.id === orderId) {
+        return { ...order, status: order.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED' };
+      }
+      return order;
+    });
+    setPharmacyOrders(updatedOrders);
+    localStorage.setItem('beavers_orders', JSON.stringify(updatedOrders));
+  };
+
+
   // --- NEW: STAFF ACTIONS ---
   const handleCreateStaff = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,6 +174,10 @@ export default function AdminDashboard() {
     if (filter === "All") return true;
     return app.branch?.name === filter;
   });
+
+  // --- CALCULATE PROFIT FOR PHARMACY ---
+  const totalRevenue = pharmacyOrders.reduce((acc, curr) => acc + (curr.total || 0), 0);
+  const totalProfit = pharmacyOrders.reduce((acc, curr) => acc + ((curr.total || 0) - (curr.cost || 0)), 0);
 
   // ===============================================
   // VIEW 1: PROFESSIONAL LOGIN
@@ -190,6 +235,13 @@ export default function AdminDashboard() {
                 className={`px-4 py-2 rounded-md text-sm font-bold transition ${activeTab === "STAFF" ? "bg-white shadow text-purple-900" : "text-gray-500 hover:text-gray-700"}`}
               >
                 Staff Management
+              </button>
+              {/* ADDED PHARMACY BUTTON */}
+              <button 
+                onClick={() => setActiveTab("PHARMACY")}
+                className={`px-4 py-2 rounded-md text-sm font-bold transition ${activeTab === "PHARMACY" ? "bg-white shadow text-purple-900" : "text-gray-500 hover:text-gray-700"}`}
+              >
+                Pharmacy Logs
               </button>
            </div>
            
@@ -298,7 +350,7 @@ export default function AdminDashboard() {
         )}
 
         {/* =======================
-            TAB 2: STAFF MANAGEMENT (NEW)
+            TAB 2: STAFF MANAGEMENT
         ======================== */}
         {activeTab === "STAFF" && (
           <div className="grid md:grid-cols-3 gap-8">
@@ -347,11 +399,11 @@ export default function AdminDashboard() {
                <h3 className="font-bold text-2xl mb-6 text-gray-900 flex items-center gap-2"><Shield size={24} className="text-blue-600"/> Active Medical Staff</h3>
                <div className="grid gap-4">
                  {staffList.length === 0 ? (
-                    <div className="p-10 text-center bg-white rounded-3xl border border-dashed border-gray-300">
-                        <Users size={40} className="mx-auto text-gray-300 mb-4"/>
-                        <p className="text-gray-500 font-medium">No active staff found.</p>
-                        <p className="text-sm text-gray-400">Use the form on the left to add doctors.</p>
-                    </div>
+                   <div className="p-10 text-center bg-white rounded-3xl border border-dashed border-gray-300">
+                       <Users size={40} className="mx-auto text-gray-300 mb-4"/>
+                       <p className="text-gray-500 font-medium">No active staff found.</p>
+                       <p className="text-sm text-gray-400">Use the form on the left to add doctors.</p>
+                   </div>
                  ) : staffList.map(staff => (
                    <div key={staff.id} className="bg-white p-5 rounded-2xl border border-gray-100 flex justify-between items-center hover:shadow-lg transition duration-200 group">
                       <div className="flex items-center gap-5">
@@ -375,6 +427,86 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* =======================
+            TAB 3: PHARMACY LOGS (NEW SECTION)
+        ======================== */}
+        {activeTab === "PHARMACY" && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h2 className="text-4xl font-black text-gray-900 mb-8 tracking-tight">Pharmacy Financials</h2>
+            
+            {/* STAT CARDS */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div className="bg-white p-6 rounded-3xl shadow-xl border border-gray-100">
+                    <div className="flex items-center gap-3 mb-2 text-gray-400 font-bold uppercase text-xs tracking-wider"><DollarSign size={16}/> Total Revenue</div>
+                    <div className="text-4xl font-black text-gray-900">KES {totalRevenue.toLocaleString()}</div>
+                </div>
+                <div className="bg-white p-6 rounded-3xl shadow-xl border border-emerald-100 bg-gradient-to-br from-white to-emerald-50/50">
+                    <div className="flex items-center gap-3 mb-2 text-emerald-600 font-bold uppercase text-xs tracking-wider"><TrendingUp size={16}/> Gross Profit</div>
+                    <div className="text-4xl font-black text-emerald-600">KES {totalProfit.toLocaleString()}</div>
+                    <div className="text-xs text-emerald-500 font-bold mt-2">
+                        Margin: {totalRevenue > 0 ? ((totalProfit/totalRevenue)*100).toFixed(1) : 0}%
+                    </div>
+                </div>
+                <div className="bg-white p-6 rounded-3xl shadow-xl border border-gray-100">
+                    <div className="flex items-center gap-3 mb-2 text-blue-500 font-bold uppercase text-xs tracking-wider"><Package size={16}/> Total Orders</div>
+                    <div className="text-4xl font-black text-blue-600">{pharmacyOrders.length}</div>
+                </div>
+            </div>
+
+            {/* SALES TABLE */}
+            <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+                <table className="w-full text-left">
+                    <thead className="bg-gray-50/50 border-b border-gray-100">
+                        <tr>
+                            <th className="p-6 text-gray-400 font-extrabold uppercase text-xs">ID</th>
+                            <th className="p-6 text-gray-400 font-extrabold uppercase text-xs">Customer</th>
+                            <th className="p-6 text-gray-400 font-extrabold uppercase text-xs">Items Sold</th>
+                            <th className="p-6 text-gray-400 font-extrabold uppercase text-xs text-right">Sale Value</th>
+                            <th className="p-6 text-gray-400 font-extrabold uppercase text-xs text-right">Profit</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                        {pharmacyOrders.length === 0 ? (
+                            <tr><td colSpan={5} className="p-16 text-center text-gray-400 font-medium">No sales recorded yet.</td></tr>
+                        ) : pharmacyOrders.map((order, i) => (
+                            <tr key={i} className="hover:bg-gray-50 transition">
+                                <td className="p-6 font-mono text-sm text-gray-500">#{order.id || "ORD"}</td>
+                                <td className="p-6">
+                                    <div className="font-bold text-gray-900">{order.customer?.phone || "Unknown"}</div>
+                                    <div className="text-xs font-bold text-gray-400 uppercase">{order.customer?.location || "Walk-in"}</div>
+                                </td>
+                                <td className="p-6">
+                                    {order.items?.map((item: any, idx: number) => (
+                                        <div key={idx} className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-purple-400"></div> {item.name}
+                                        </div>
+                                    ))}
+                                </td>
+                                <td className="p-6 text-right font-black text-gray-900">KES {order.total}</td>
+                                <td className="p-6 text-right font-black text-emerald-600">+KES {(order.total - order.cost)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* HIDDEN PRINT TEMPLATES */}
+      <div className="hidden">
+        {pharmacyOrders.map((order) => (
+          <div key={`invoice-${order.id}`} id={`invoice-${order.id}`} className="p-10 bg-white text-slate-900 font-sans">
+            <div className="flex justify-between items-center border-b-2 border-slate-200 pb-6 mb-8">
+              <div><h1 className="text-2xl font-black">BEAVERS FamilyCare</h1><p className="text-sm font-bold text-slate-500">Pharmacy Receipt</p></div>
+              <div className="text-right"><p className="font-black">#{order.id?.slice(-8)}</p><p className="text-xs">{new Date(order.timestamp).toLocaleDateString()}</p></div>
+            </div>
+            <div className="mb-10"><p className="text-[10px] font-black uppercase text-slate-400 mb-1">Customer Details</p><p className="font-bold">Phone: {order.customer?.phone}</p><p className="font-bold">Location: {order.customer?.location}</p></div>
+            <table className="w-full mb-10"><thead className="border-b border-slate-200 text-left text-[10px] uppercase font-black"><tr><th className="py-2">Description</th><th className="py-2 text-right">Price</th></tr></thead><tbody>{order.items?.map((it: any, k: number) => (<tr key={k} className="border-b border-slate-50"><td className="py-3 font-bold">{it.name}</td><td className="py-3 text-right">Paid</td></tr>))}<tr className="text-lg font-black"><td className="py-6">Total Paid via M-Pesa</td><td className="py-6 text-right">KES {order.total}</td></tr></tbody></table>
+            <div className="text-center pt-10 border-t border-slate-100 text-[9px] uppercase font-black text-slate-400 tracking-widest"><p>Thank you for choosing Beavers, Lewis!</p></div>
+          </div>
+        ))}
       </div>
     </div>
   );
