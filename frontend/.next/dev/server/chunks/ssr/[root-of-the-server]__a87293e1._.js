@@ -483,17 +483,17 @@ function BaviUltimate() {
                                 className: "absolute inset-0 z-0",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "absolute inset-0 bg-gradient-to-b from-blue-50/50 via-white to-blue-50/20"
+                                        className: "absolute inset-0 bg-gradient-to-b from-blue-100/50 via-white to-blue-50/30"
                                     }, void 0, false, {
                                         fileName: "[project]/frontend/src/components/Chatbot.tsx",
                                         lineNumber: 119,
                                         columnNumber: 16
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-100 opacity-20 pointer-events-none",
+                                        className: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-200 opacity-40 pointer-events-none",
                                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$activity$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Activity$3e$__["Activity"], {
                                             size: 300,
-                                            strokeWidth: 1
+                                            strokeWidth: 1.5
                                         }, void 0, false, {
                                             fileName: "[project]/frontend/src/components/Chatbot.tsx",
                                             lineNumber: 123,
@@ -505,9 +505,9 @@ function BaviUltimate() {
                                         columnNumber: 16
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "absolute inset-0 opacity-[0.03]",
+                                        className: "absolute inset-0 opacity-[0.08]",
                                         style: {
-                                            backgroundImage: 'radial-gradient(#2563eb 1px, transparent 1px)',
+                                            backgroundImage: 'radial-gradient(#2563eb 1.5px, transparent 1.5px)',
                                             backgroundSize: '24px 24px'
                                         }
                                     }, void 0, false, {
@@ -529,7 +529,7 @@ function BaviUltimate() {
                                             className: `flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2`,
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                    className: `max-w-[85%] p-4 text-[14px] leading-relaxed shadow-sm relative backdrop-blur-sm ${m.role === 'user' ? 'bg-blue-600 text-white rounded-2xl rounded-tr-none shadow-[0_4px_12px_rgba(37,99,235,0.3)]' : 'bg-white/90 text-slate-700 border border-white/50 rounded-2xl rounded-tl-none font-medium shadow-[0_2px_8px_rgba(0,0,0,0.04)]'}`,
+                                                    className: `max-w-[85%] p-4 text-[14px] leading-relaxed shadow-sm relative backdrop-blur-sm ${m.role === 'user' ? 'bg-blue-600 text-white rounded-2xl rounded-tr-none shadow-[0_4px_12px_rgba(37,99,235,0.3)]' : 'bg-white/95 text-slate-700 border border-blue-100/50 rounded-2xl rounded-tl-none font-medium shadow-[0_2px_8px_rgba(0,0,0,0.06)]'}`,
                                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                         dangerouslySetInnerHTML: {
                                                             __html: m.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>')
@@ -545,7 +545,7 @@ function BaviUltimate() {
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                    className: "text-[10px] text-slate-400 mt-1 px-1 font-semibold opacity-70",
+                                                    className: "text-[10px] text-slate-500 mt-1 px-1 font-semibold opacity-80",
                                                     children: m.time
                                                 }, void 0, false, {
                                                     fileName: "[project]/frontend/src/components/Chatbot.tsx",
@@ -559,7 +559,7 @@ function BaviUltimate() {
                                             columnNumber: 17
                                         }, this)),
                                     isTyping && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "flex items-center gap-1 ml-2 bg-white/80 border border-white w-fit px-4 py-3 rounded-2xl rounded-tl-none shadow-sm backdrop-blur-sm",
+                                        className: "flex items-center gap-1 ml-2 bg-white/90 border border-blue-100 w-fit px-4 py-3 rounded-2xl rounded-tl-none shadow-sm backdrop-blur-sm",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 className: "w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"
@@ -601,7 +601,7 @@ function BaviUltimate() {
                         columnNumber: 11
                     }, this),
                     !isTyping && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar bg-white/80 backdrop-blur-md border-t border-slate-100 z-20",
+                        className: "px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar bg-white/90 backdrop-blur-md border-t border-slate-100 z-20",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                 onClick: ()=>handleQuickReply("Consultation prices?"),
@@ -702,7 +702,7 @@ function BaviUltimate() {
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "bg-slate-50 px-4 py-2 flex justify-between items-center text-[9px] text-slate-400 font-bold uppercase tracking-widest border-t border-slate-200 z-20",
+                        className: "bg-slate-50 px-4 py-2 flex justify-between items-center text-[9px] text-slate-500 font-bold uppercase tracking-widest border-t border-slate-200 z-20",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                 className: "flex items-center gap-1 text-emerald-600",
@@ -722,7 +722,7 @@ function BaviUltimate() {
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$frontend$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                children: "Bavi 3.0"
+                                children: "Bavi 3.1"
                             }, void 0, false, {
                                 fileName: "[project]/frontend/src/components/Chatbot.tsx",
                                 lineNumber: 195,
