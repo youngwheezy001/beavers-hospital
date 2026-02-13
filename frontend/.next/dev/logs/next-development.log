@@ -16,3 +16,5 @@
 [00:54:52.814] Server  ERROR   (node:33092) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 [00:54:54.441] Server  LOG     🚀 Sending Payload: "{\n  \"BusinessShortCode\": \"174379\",\n  \"Password\": \"MTc0Mzc5YmZiMjc5ZjlhYTliZGJjZjE1OGU5N2RkNzFhNDY3Y2QyZTBjODkzMDU5YjEwZjc4ZTZiNzJhZGExZWQyYzkxOTIwMjYwMjEzMDk0NDQ1\",\n  \"Timestamp\": \"20260213094445\",\n  \"TransactionType\": \"CustomerPayBillOnline\",\n  \"Amount\": 300,\n  \"PartyA\": \"254701144666\",\n  \"PartyB\": \"174379\",\n  \"PhoneNumber\": \"254701144666\",\n  \"CallBackURL\": \"https://rebbecca-unstammering-allena.ngrok-free.dev/api/callback\",\n  \"AccountReference\": \"Beavers\",\n  \"TransactionDesc\": \"Meds\"\n}"
+[01:05:08.611] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:45:34.962] Server  LOG     ✓ Compiled in 9.6s
