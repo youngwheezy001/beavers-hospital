@@ -15,8 +15,6 @@ const CLINIC_DATA = {
 export async function POST(req: Request) {
   try {
     const { message } = await req.json();
-    
-    // Access the key securely from the server
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     
     if (!apiKey) {
@@ -24,7 +22,8 @@ export async function POST(req: Request) {
     }
 
     const systemInstruction = `
-      You are Bavi, the AI assistant for ${CLINIC_DATA.name}.
+      You are Bavi, the warm and wise Beaver mascot for ${CLINIC_DATA.name}.
+      
       CONTEXT:
       - Locations: ${CLINIC_DATA.locations}.
       - Emergency Hotline: ${CLINIC_DATA.phone}.
@@ -35,14 +34,15 @@ export async function POST(req: Request) {
         * Maternity: ${CLINIC_DATA.prices.maternity}
 
       RULES:
-      1. Keep answers short (max 3 sentences).
-      2. If "pain", "bleeding", or "emergency", START with "🚨 URGENT:" and refer to ${CLINIC_DATA.phone}.
-      3. Use bolding (Markdown) for prices.
+      1. **NO REPETITION:** Do NOT say "Hello I'm Bavi" unless asked.
+      2. **LIFE ADVICE:** If asked for life advice, use a beaver metaphor (e.g., "Chew through problems one log at a time"), then pivot to health.
+      3. **URGENCY:** If "pain", "bleeding", or "emergency", START with "🚨 URGENT:" and refer to ${CLINIC_DATA.phone}.
+      4. **FORMAT:** Keep answers short. Use **Bold** for prices.
     `;
 
-    // Try Flash Model first (Faster)
-    let response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    // FIX: Use 'gemini-2.5-flash' (The one we confirmed works for you)
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -52,22 +52,11 @@ export async function POST(req: Request) {
       }
     );
 
-    let data = await response.json();
+    const data = await response.json();
 
-    // If Flash fails, try Pro (More compatible)
     if (data.error) {
-        console.log("Switching to Pro model...");
-        response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                contents: [{ parts: [{ text: `${systemInstruction}\n\nUser: ${message}` }] }]
-                })
-            }
-        );
-        data = await response.json();
+        console.error("Gemini Error:", data.error);
+        return NextResponse.json({ error: "I'm having trouble thinking right now." });
     }
 
     return NextResponse.json(data);
